@@ -1,0 +1,116 @@
+package core
+
+import (
+	"fmt"
+	"math"
+	"time"
+
+	"github.com/keldonia/btime.go/models"
+	"github.com/keldonia/btime.go/utils"
+)
+
+type BConversionUtil struct {
+	bTimeConfig *BTimeConfig
+}
+
+func NewBConversionUtil(bTimeConfig *BTimeConfig) (*BConversionUtil, error) {
+	if bTimeConfig == nil {
+		return nil, fmt.Errorf("No BTimeConfig was provided")
+	}
+
+	return &BConversionUtil{
+		bTimeConfig: bTimeConfig,
+	}, nil
+}
+
+func (bcu *BConversionUtil) ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule {
+	days := utils.GetDatesFromStartDate(schedule.WeekStart)
+	appointmentAvailability := [][]models.Appointment{}
+	appointmentBookings := [][]models.Appointment{}
+	appointmentBaseSchedule := [][]models.Appointment{}
+
+	for i := 0; i < len(availability); i++ {
+		avail := availability[i]
+		day := days[i]
+		appointment := bcu.ConvertTimeSlotsStringToAppointments(avail, &day)
+		appointmentAvailability = append(appointmentAvailability, *appointment)
+	}
+
+	for i := 0; i < len(*schedule.Bookings); i++ {
+		booking := (*schedule.Bookings)[i]
+		day := days[i]
+		bookingSet := bcu.ConvertTimeSlotsStringToAppointments(booking, &day)
+		appointmentBookings = append(appointmentBookings, *bookingSet)
+	}
+
+	for i := 0; i < len(*schedule.Schedule); i++ {
+		daySchedule := (*schedule.Schedule)[i]
+		day := days[i]
+		dayApptSchedule := bcu.ConvertTimeSlotsStringToAppointments(daySchedule, &day)
+		appointmentBaseSchedule = append(appointmentBaseSchedule, *dayApptSchedule)
+	}
+
+	return &models.AppointmentSchedule{
+		WeekStart:    schedule.WeekStart,
+		Bookings:     &appointmentBookings,
+		Availability: &appointmentAvailability,
+		Schedule:     &appointmentBaseSchedule,
+	}
+}
+
+func (bcu *BConversionUtil) ConvertTimeSlotsStringToAppointments(timeSlots string, date *time.Time) *[]models.Appointment {
+	appointments := []models.Appointment{}
+	var currentStart *time.Time
+
+	for i := 0; i < bcu.bTimeConfig.IntervalsInDay; i++ {
+		if string(timeSlots[i]) == "1" && currentStart == nil {
+			currentStart = bcu.CalculateDate(i, date, false)
+		}
+		if currentStart != nil && string(timeSlots[i]) == "0" {
+			currentEnd := bcu.CalculateDate(i-1, date, true)
+			appointment := models.Appointment{
+				StartTime: currentStart,
+				EndTime:   currentEnd,
+			}
+
+			appointments = append(appointments, appointment)
+			currentStart = nil
+		}
+	}
+
+	if currentStart != nil {
+		currentEnd := utils.GetUTCDateEnd(date, 59)
+		appointment := models.Appointment{
+			StartTime: currentStart,
+			EndTime:   currentEnd,
+		}
+		appointments = append(appointments, appointment)
+	}
+
+	return &appointments
+}
+
+func (bcu *BConversionUtil) CalculateDate(timePointerIndex int, baseDate *time.Time, end bool) *time.Time {
+	hourMarker := float64(timePointerIndex / bcu.bTimeConfig.IntervalsInHour)
+	hours := int(math.Floor(hourMarker))
+	minutes := timePointerIndex % bcu.bTimeConfig.IntervalsInHour * bcu.bTimeConfig.TimeInterval
+	seconds := 0
+
+	if end {
+		minutes += bcu.bTimeConfig.TimeInterval
+		seconds = -1
+	}
+
+	returnTime := time.Date(
+		baseDate.Year(),
+		baseDate.Month(),
+		baseDate.Day(),
+		hours,
+		minutes,
+		seconds,
+		0,
+		time.UTC,
+	)
+
+	return &returnTime
+}
