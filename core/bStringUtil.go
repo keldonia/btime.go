@@ -16,6 +16,11 @@ type BStringUtil struct {
 	emptyDay           string
 }
 
+// Instantiates a new BStringUtil, which is responsible for
+// generating and formatting  the bStrings used by this package
+//
+// NB: Typically a temporal resolution of 5 mins is sufficient,
+// as it constitutes the smallest billable unit in most juristictions
 func NewBStringUtil(bTimeConfig *BTimeConfig) (*BStringUtil, error) {
 	if bTimeConfig == nil {
 		return nil, fmt.Errorf("[BStringUtil] No BTimeConfig was provided")
@@ -38,6 +43,8 @@ func NewBStringUtil(bTimeConfig *BTimeConfig) (*BStringUtil, error) {
 	}, nil
 }
 
+// Generates a bString representation of a given appointment, assuming it is valid.
+// If the appointment is invalid, it will throw an error
 func (bsu *BStringUtil) GenerateBString(appt *models.Appointment) (*string, error) {
 	if appt.EndTime.Before(*appt.StartTime) {
 		return nil, fmt.Errorf("BString Error: Appointment can't end before it begins.  Appointment start: %s Appointment end: %s", appt.StartTime.UTC().GoString(), appt.EndTime.UTC().GoString())
@@ -56,6 +63,12 @@ func (bsu *BStringUtil) GenerateBString(appt *models.Appointment) (*string, erro
 	return &bString, nil
 }
 
+// Generates a bString representation of a given array of appointments, assuming it is valid.
+// If the appointment is invalid, it will throw an error
+//
+// NB: This method generates a representation of the entire week
+//
+// NB: Assumes appointments in array don't overlap
 func (bsu *BStringUtil) GenerateBStringFromAppointments(appointments *[]models.Appointment) (*[]string, error) {
 	var composedBString string = ""
 
@@ -91,10 +104,12 @@ func (bsu *BStringUtil) GenerateBStringFromAppointments(appointments *[]models.A
 	return &splitString, nil
 }
 
+// Splits each schedule BString into a string of length defined in the regex
 func (bsu *BStringUtil) TimeStringSplit(scheduleString string) []string {
 	return bsu.bTimeConfig.BStringSplitRegexStr.FindAllString(scheduleString, -1)
 }
 
+// Converts bString representation of a number into a number for calculation purposes
 func (bsu *BStringUtil) ParseBString(bString string) (*int64, error) {
 	numeric, err := strconv.ParseInt(bString, 2, 64)
 
@@ -105,6 +120,7 @@ func (bsu *BStringUtil) ParseBString(bString string) (*int64, error) {
 	return &numeric, nil
 }
 
+// Converts number into a bString representation with the given scheduling interval
 func (bsu *BStringUtil) DecimalToBString(decimal float64) string {
 	return fmt.Sprintf("'%0*s", bsu.bTimeConfig.IntervalsInHour, strconv.FormatInt(int64(decimal), constants.BinaryBase))
 }
