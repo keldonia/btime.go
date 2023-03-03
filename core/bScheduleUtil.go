@@ -13,7 +13,7 @@ type BScheduleUtil struct {
 	bStringUtil *BStringUtil
 }
 
-// Instantiates a new BScheduleUtil is responsible for handling scheduling using bit manipulations
+// Instantiates a new BScheduleUtil, which is responsible for handling scheduling using bit manipulations
 func NewBScheduleUtil(bTimeConfig *BTimeConfig) (*BScheduleUtil, error) {
 	if bTimeConfig == nil {
 		return nil, fmt.Errorf("[BScheduleUtil] No BTimeConfig was provided")

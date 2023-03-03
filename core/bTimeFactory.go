@@ -15,6 +15,10 @@ type BTimeFactory struct {
 //
 // NB: Typically a temporal resolution of 5 mins is sufficient,
 // as it constitutes the smallest billable unit in most juristictions
+//
+// NB: The time interval must be a factor of 60,
+//
+//	ie. 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, or 60
 func NewBTimeFactory(timeInterval int) (*BTimeFactory, error) {
 	bTimeConfig, err := BuildConfigFromTimeInterval(timeInterval)
 
