@@ -12,12 +12,12 @@ type BPointerCalculator struct {
 	bTimeConfig *BTimeConfig
 }
 
-func NewBPointerCalculator(bTimeConfig *BTimeConfig) (*BConversionUtil, error) {
+func NewBPointerCalculator(bTimeConfig *BTimeConfig) (*BPointerCalculator, error) {
 	if bTimeConfig == nil {
-		return nil, fmt.Errorf("No BTimeConfig was provided")
+		return nil, fmt.Errorf("[BPointerCalculator] No BTimeConfig was provided")
 	}
 
-	return &BConversionUtil{
+	return &BPointerCalculator{
 		bTimeConfig: bTimeConfig,
 	}, nil
 }

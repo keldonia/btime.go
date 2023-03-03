@@ -15,7 +15,7 @@ type BConversionUtil struct {
 
 func NewBConversionUtil(bTimeConfig *BTimeConfig) (*BConversionUtil, error) {
 	if bTimeConfig == nil {
-		return nil, fmt.Errorf("No BTimeConfig was provided")
+		return nil, fmt.Errorf("[BConversionUtil] No BTimeConfig was provided")
 	}
 
 	return &BConversionUtil{
