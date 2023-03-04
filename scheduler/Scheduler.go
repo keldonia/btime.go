@@ -155,18 +155,18 @@ func (bs *BSchdeuler) UpdateSchedule(proposedSchedule *models.Schedule, schedule
 			if err != nil {
 				return nil, err
 			}
-
-			joinedProposeded := strings.Join(splitProposed[0:constants.HoursInDay], "")
-			joinedBookings := strings.Join(splitBookings[0:constants.HoursInDay], "")
-
-			(*proposedSchedule.Schedule)[i] = joinedProposeded
-			(*schedule.Bookings)[i] = joinedBookings
 		}
 
-		schedule.Schedule = proposedSchedule.Schedule
+		joinedProposeded := strings.Join(splitProposed[0:constants.HoursInDay], "")
+		joinedBookings := strings.Join(splitBookings[0:constants.HoursInDay], "")
 
-		return schedule, nil
+		(*proposedSchedule.Schedule)[i] = joinedProposeded
+		(*schedule.Bookings)[i] = joinedBookings
 	}
+
+	schedule.Schedule = proposedSchedule.Schedule
+
+	return schedule, nil
 }
 
 // Takes an slice of appointments and update type and tests if the appointment updates are valid,

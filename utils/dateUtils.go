@@ -83,6 +83,17 @@ func CrossesWeekBoundary(appt models.Appointment) bool {
 func GetWeek(date time.Time) int {
 	_, weekNumber := date.UTC().ISOWeek()
 
+	// Fix to move week start to Sunday (Golang's start's on Monday)
+	if date.UTC().Weekday() == time.Sunday {
+		weekNumber += 1
+	}
+
+	// Fix for 53 week long years
+	if weekNumber == 53 {
+		weekNumber = 1
+	}
+
+	// Correct indexing for UTC Week
 	return weekNumber
 }
 
@@ -110,7 +121,7 @@ func GetUTCDateEnd(date *time.Time, seconds int) *time.Time {
 		date.Day(),
 		23,
 		59,
-		59,
+		seconds,
 		0,
 		time.UTC,
 	)
