@@ -33,7 +33,14 @@ func (bpc *BPointerCalculator) FindBPointerIncludingDay(date *time.Time) int {
 
 // Finds the pointer modifer to correct for day of the week
 func (bpc *BPointerCalculator) FindBPointerModiferForDayOfWeek(date *time.Time) int {
-	return date.UTC().Day() * bpc.bTimeConfig.IntervalsInHour * constants.HoursInDay
+	weekday := date.UTC().Weekday()
+
+	// Shift pointer to start week on Sunday
+	if weekday == time.Sunday {
+		weekday = 0
+	}
+
+	return int(weekday) * bpc.bTimeConfig.IntervalsInHour * constants.HoursInDay
 }
 
 // Finds a the pointer for a given date in time based on the instatiated time interval within a given day
