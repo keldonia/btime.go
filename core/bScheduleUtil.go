@@ -163,7 +163,8 @@ func (bschu *BScheduleUtil) ModifyScheduleAndBookingInterval(scheduleBStringToMo
 		return nil, err
 	}
 
-	_, err = bschu.TestViabilityAndCompute(*parsedApptBString, *parsedToTest)
+	// Flip the bits to test the pattern
+	_, err = bschu.TestViabilityAndCompute(*parsedApptBString, ^*parsedToTest)
 
 	if err != nil {
 		return nil, err

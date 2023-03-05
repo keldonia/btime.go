@@ -91,7 +91,6 @@ func (bsu *BStringUtil) GenerateBStringFromAppointments(appointments *[]models.A
 		// Adds padding between appointments
 		zeroesToAdd := startPointer - len(composedBString)
 		addedZeros := strings.Repeat(constants.ZeroPad, zeroesToAdd)
-		fmt.Printf("timeBlock %d", timeBlock)
 		composedBString = composedBString + addedZeros + strings.Repeat(constants.OnePad, timeBlock)
 	}
 

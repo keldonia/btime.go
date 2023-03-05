@@ -52,7 +52,6 @@ func TestGenerateBString(t *testing.T) {
 			bString, err := bStringUtil.GenerateBString(&tc.Appt)
 
 			if tc.Error && err == nil {
-				fmt.Print(err)
 				t.Fatalf("did not received expected error")
 			}
 
