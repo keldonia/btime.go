@@ -75,7 +75,7 @@ func (bsu *BStringUtil) GenerateBStringFromAppointments(appointments *[]models.A
 	for i := 0; i < len(*appointments); i++ {
 		appt := (*appointments)[i]
 
-		if appt.EndTime.After(*appt.StartTime) {
+		if appt.StartTime.After(*appt.EndTime) {
 			return nil, fmt.Errorf("BString Error: Appointment can't end before it begins.  Appointment start: %s Appointment end: %s", appt.StartTime.UTC().GoString(), appt.EndTime.UTC().GoString())
 		}
 
@@ -91,7 +91,7 @@ func (bsu *BStringUtil) GenerateBStringFromAppointments(appointments *[]models.A
 		// Adds padding between appointments
 		zeroesToAdd := startPointer - len(composedBString)
 		addedZeros := strings.Repeat(constants.ZeroPad, zeroesToAdd)
-
+		fmt.Printf("timeBlock %d", timeBlock)
 		composedBString = composedBString + addedZeros + strings.Repeat(constants.OnePad, timeBlock)
 	}
 
@@ -122,5 +122,5 @@ func (bsu *BStringUtil) ParseBString(bString string) (*int64, error) {
 
 // Converts number into a bString representation with the given scheduling interval
 func (bsu *BStringUtil) DecimalToBString(decimal float64) string {
-	return fmt.Sprintf("'%0*s", bsu.bTimeConfig.IntervalsInHour, strconv.FormatInt(int64(decimal), constants.BinaryBase))
+	return fmt.Sprintf("%0*s", bsu.bTimeConfig.IntervalsInHour, strconv.FormatInt(int64(decimal), constants.BinaryBase))
 }
