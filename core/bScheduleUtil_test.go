@@ -52,6 +52,7 @@ func TestLoopMergeScheduleBStringWithTest(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
 	bScheduleUtil, _ := NewBScheduleUtil(bTimeConfig)
+	bStringUtil, _ := NewBStringUtil(bTimeConfig)
 
 	type test struct {
 		Appt1    models.Appointment
@@ -75,7 +76,7 @@ func TestLoopMergeScheduleBStringWithTest(t *testing.T) {
 		tc := tests[i]
 		name := fmt.Sprintf("tc: %d", i)
 		t.Run(name, func(t *testing.T) {
-			bString, _ := bScheduleUtil.bStringUtil.GenerateBString(&tc.Appt2)
+			bString, _ := bStringUtil.GenerateBString(&tc.Appt2)
 
 			mergedBString, err := bScheduleUtil.MergeScheduleBStringsWithTest(&tc.Appt1, *bString)
 
@@ -328,7 +329,7 @@ func TestValidDeletion(t *testing.T) {
 			parsedBase, _ := bStringUtil.ParseBString(tc.Base)
 			parsedAppt, _ := bStringUtil.ParseBString(tc.Appt)
 
-			validDeletion := bScheduleUtil.validDeletion(*parsedBase, *parsedAppt)
+			validDeletion := bScheduleUtil.ValidDeletion(*parsedBase, *parsedAppt)
 
 			if tc.Expected != validDeletion {
 				t.Fatalf("expected %t, received %t", tc.Expected, validDeletion)

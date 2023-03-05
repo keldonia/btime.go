@@ -9,7 +9,7 @@ import (
 func TestFindBPointerIncludingDay5MinInterval(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
-	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
+	bPointerCalculator, _ := NewBPointerCalculatorImpl(bTimeConfig)
 
 	type test struct {
 		Hour     int
@@ -56,7 +56,7 @@ func TestFindBPointerIncludingDay5MinInterval(t *testing.T) {
 func TestFindBPointerModiferForDayOfWeek(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
-	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
+	bPointerCalculator, _ := NewBPointerCalculatorImpl(bTimeConfig)
 
 	type test struct {
 		Date     string
@@ -98,7 +98,7 @@ func TestFindBPointer(t *testing.T) {
 
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
-	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
+	bPointerCalculator, _ := NewBPointerCalculatorImpl(bTimeConfig)
 
 	tests := []test{
 		{Hour: 0, Minute: 0, Expected: 0},

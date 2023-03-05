@@ -8,13 +8,27 @@ import (
 	"github.com/keldonia/btime.go/models"
 )
 
-type BScheduleUtil struct {
+//go:generate mockery --name BScheduleUtil
+type BScheduleUtil interface {
+	MergeScheduleBStringsWithTest(timeSlot *models.Appointment, schedule string) (*string, error)
+	MergeScheduleBStringsWithTestBase(apptBString string, schedule string) (*string, error)
+	MergeScheduleBStringWithTest(timeSlotBString string, schedule string) (*string, error)
+	ModifyScheduleAndBooking(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error)
+	ModifyScheduleAndBookingInterval(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error)
+	TestViabilityAndCompute(binary1 int64, binary2 int64) (*int64, error)
+	DeleteAppointment(timeSlotToDelete *models.Appointment, scheduleSlot string) (*string, error)
+	DeleteAppointmentBString(bStringToDelete string, scheduleSlot string) (*string, error)
+	DeleteAppointmentInterval(timeSlotBString string, scheduleInterval string) (*string, error)
+	ValidDeletion(baseNumber int64, toDeleteNumber int64) bool
+}
+
+type BScheduleUtilImpl struct {
 	bTimeConfig *BTimeConfig
-	bStringUtil *BStringUtil
+	bStringUtil BStringUtil
 }
 
 // Instantiates a new BScheduleUtil, which is responsible for handling scheduling using bit manipulations
-func NewBScheduleUtil(bTimeConfig *BTimeConfig) (*BScheduleUtil, error) {
+func NewBScheduleUtil(bTimeConfig *BTimeConfig) (BScheduleUtil, error) {
 	if bTimeConfig == nil {
 		return nil, fmt.Errorf("[BScheduleUtil] No BTimeConfig was provided")
 	}
@@ -25,7 +39,7 @@ func NewBScheduleUtil(bTimeConfig *BTimeConfig) (*BScheduleUtil, error) {
 		return nil, err
 	}
 
-	return &BScheduleUtil{
+	return &BScheduleUtilImpl{
 		bTimeConfig: bTimeConfig,
 		bStringUtil: bStringUtil,
 	}, nil
@@ -33,7 +47,7 @@ func NewBScheduleUtil(bTimeConfig *BTimeConfig) (*BScheduleUtil, error) {
 
 // Tests that an appointment does not overlap with another appointment, if it does not overlap,
 // the appointment is added to the bookings, else throws an error
-func (bschu *BScheduleUtil) MergeScheduleBStringsWithTest(timeSlot *models.Appointment, schedule string) (*string, error) {
+func (bschu *BScheduleUtilImpl) MergeScheduleBStringsWithTest(timeSlot *models.Appointment, schedule string) (*string, error) {
 	if timeSlot.EndTime.Before(*timeSlot.StartTime) {
 		return nil, fmt.Errorf("BSchedule Error: Invalid timeslot passed to merge schedule BString StartTime: %s EndTime: %s", timeSlot.StartTime.UTC().GoString(), timeSlot.EndTime.UTC().GoString())
 	}
@@ -54,7 +68,7 @@ func (bschu *BScheduleUtil) MergeScheduleBStringsWithTest(timeSlot *models.Appoi
 
 // Tests that an appointment does not overlap with another appointment, if it does not overlap,
 // the appointment is added to the bookings, else throws an error
-func (bschu *BScheduleUtil) MergeScheduleBStringsWithTestBase(apptBString string, schedule string) (*string, error) {
+func (bschu *BScheduleUtilImpl) MergeScheduleBStringsWithTestBase(apptBString string, schedule string) (*string, error) {
 	apptMask := bschu.bStringUtil.TimeStringSplit(apptBString)
 	splitSchedule := bschu.bStringUtil.TimeStringSplit(schedule)
 	mergedSchedule := []string{}
@@ -78,7 +92,7 @@ func (bschu *BScheduleUtil) MergeScheduleBStringsWithTestBase(apptBString string
 
 // Tests that an timeSlot does not overlap with another timeSlot, if it does not overlap,
 // the timeSlot is added to the bookings, else throws an error
-func (bschu *BScheduleUtil) MergeScheduleBStringWithTest(timeSlotBString string, schedule string) (*string, error) {
+func (bschu *BScheduleUtilImpl) MergeScheduleBStringWithTest(timeSlotBString string, schedule string) (*string, error) {
 	parsedSchedule, err := bschu.bStringUtil.ParseBString(schedule)
 
 	if err != nil {
@@ -112,7 +126,7 @@ func (bschu *BScheduleUtil) MergeScheduleBStringWithTest(timeSlotBString string,
 //
 // NB: If testing a booking update, test that booking fits in avail.
 // This means that bookingsUpdate the inputs are (bookings, bookings, appt)
-func (bschu *BScheduleUtil) ModifyScheduleAndBooking(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error) {
+func (bschu *BScheduleUtilImpl) ModifyScheduleAndBooking(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error) {
 	splitToModify := bschu.bStringUtil.TimeStringSplit(scheduleBStringToModify)
 	splitToTest := bschu.bStringUtil.TimeStringSplit(scheduleBStringToTest)
 	splitAppt := bschu.bStringUtil.TimeStringSplit(appt)
@@ -144,7 +158,7 @@ func (bschu *BScheduleUtil) ModifyScheduleAndBooking(scheduleBStringToModify str
 //
 // NB: If testing a booking update, test that booking fits in avail.
 // This means that bookingsUpdate the inputs are (bookings, bookings, appt)
-func (bschu *BScheduleUtil) ModifyScheduleAndBookingInterval(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error) {
+func (bschu *BScheduleUtilImpl) ModifyScheduleAndBookingInterval(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error) {
 	parsedToModify, err := bschu.bStringUtil.ParseBString(scheduleBStringToModify)
 
 	if err != nil {
@@ -182,7 +196,7 @@ func (bschu *BScheduleUtil) ModifyScheduleAndBookingInterval(scheduleBStringToMo
 }
 
 // Tests that two time intervals do not overlap
-func (bschu *BScheduleUtil) TestViabilityAndCompute(binary1 int64, binary2 int64) (*int64, error) {
+func (bschu *BScheduleUtilImpl) TestViabilityAndCompute(binary1 int64, binary2 int64) (*int64, error) {
 	modified := binary1 ^ binary2
 	test := binary1 | binary2
 
@@ -196,7 +210,7 @@ func (bschu *BScheduleUtil) TestViabilityAndCompute(binary1 int64, binary2 int64
 // Tests removal a give time slot from a given time interval and if valid removes it
 //
 // NB: This is also used for calculating remaining availability
-func (bschu *BScheduleUtil) DeleteAppointment(timeSlotToDelete *models.Appointment, scheduleSlot string) (*string, error) {
+func (bschu *BScheduleUtilImpl) DeleteAppointment(timeSlotToDelete *models.Appointment, scheduleSlot string) (*string, error) {
 	if timeSlotToDelete.EndTime.Before(*timeSlotToDelete.StartTime) {
 		return nil, fmt.Errorf("BSchedule Error: Invalid appointment passed to delete appointment StartTime: %s EndTime: %s", timeSlotToDelete.StartTime.UTC().GoString(), timeSlotToDelete.EndTime.UTC().GoString())
 	}
@@ -219,7 +233,7 @@ func (bschu *BScheduleUtil) DeleteAppointment(timeSlotToDelete *models.Appointme
 // Tests removal a given time slot from a given time interval and if valid removes it
 //
 // NB: This is also used for calculating remaining availability
-func (bschu *BScheduleUtil) DeleteAppointmentBString(bStringToDelete string, scheduleSlot string) (*string, error) {
+func (bschu *BScheduleUtilImpl) DeleteAppointmentBString(bStringToDelete string, scheduleSlot string) (*string, error) {
 	apptMask := bschu.bStringUtil.TimeStringSplit(bStringToDelete)
 	splitBookings := bschu.bStringUtil.TimeStringSplit(scheduleSlot)
 	returnAppointments := []string{}
@@ -243,7 +257,7 @@ func (bschu *BScheduleUtil) DeleteAppointmentBString(bStringToDelete string, sch
 // NB: Deleted appts can restore availability not add new availability
 // as appts can only be created where the is availability and
 // availability cannot be deleted when there is a concurrent appt
-func (bschu *BScheduleUtil) DeleteAppointmentInterval(timeSlotBString string, scheduleInterval string) (*string, error) {
+func (bschu *BScheduleUtilImpl) DeleteAppointmentInterval(timeSlotBString string, scheduleInterval string) (*string, error) {
 	parsedSchedule, err := bschu.bStringUtil.ParseBString(scheduleInterval)
 
 	if err != nil {
@@ -255,7 +269,7 @@ func (bschu *BScheduleUtil) DeleteAppointmentInterval(timeSlotBString string, sc
 		return nil, err
 	}
 
-	if !bschu.validDeletion(*parsedSchedule, *parsedApptBString) {
+	if !bschu.ValidDeletion(*parsedSchedule, *parsedApptBString) {
 		return nil, fmt.Errorf("BScheduleUtil Error: invalid deletion, interval to delete occurs outside of schedule interval. To be deleted: %s Schedule: %s", timeSlotBString, scheduleInterval)
 	}
 
@@ -267,7 +281,7 @@ func (bschu *BScheduleUtil) DeleteAppointmentInterval(timeSlotBString string, sc
 }
 
 // Tests removal a give time slot from a given time interval
-func (bschu *BScheduleUtil) validDeletion(baseNumber int64, toDeleteNumber int64) bool {
+func (bschu *BScheduleUtilImpl) ValidDeletion(baseNumber int64, toDeleteNumber int64) bool {
 	orTest := baseNumber | toDeleteNumber
 
 	return orTest == baseNumber

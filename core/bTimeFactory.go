@@ -4,11 +4,25 @@ import (
 	"github.com/keldonia/btime.go/models"
 )
 
-type BTimeFactory struct {
+//go:generate mockery --name BTimeFactory
+type BTimeFactory interface {
+	ParseBString(bString string) (*int64, error)
+	GenerateBString(appt *models.Appointment) (*string, error)
+	GenerateBStringFromAppointments(appointments *[]models.Appointment) (*[]string, error)
+	TimeStringSplit(scheduleString string) []string
+	DecimalToBString(decimal float64) string
+	TestViabilityAndCompute(binary1 int64, binary2 int64) (*int64, error)
+	DeleteAppointment(timeSlotToDelete *models.Appointment, scheduleSlot string) (*string, error)
+	DeleteAppointmentBString(timeSlotToDelete string, scheduleSlot string) (*string, error)
+	ModifyScheduleAndBooking(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error)
+	ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule
+}
+
+type BTimeFactoryImpl struct {
 	bTimeConfig     *BTimeConfig
-	bStringUtil     *BStringUtil
-	bScheduleUtil   *BScheduleUtil
-	bConversionUtil *BConversionUtil
+	bStringUtil     BStringUtil
+	bScheduleUtil   BScheduleUtil
+	bConversionUtil BConversionUtil
 }
 
 // Instantiates a new BTimeFactory, which manages and exposes various binary scheduling and string utils
@@ -19,7 +33,7 @@ type BTimeFactory struct {
 // NB: The time interval must be a factor of 60,
 //
 //	ie. 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, or 60
-func NewBTimeFactory(timeInterval int) (*BTimeFactory, error) {
+func NewBTimeFactory(timeInterval int) (BTimeFactory, error) {
 	bTimeConfig, err := BuildConfigFromTimeInterval(timeInterval)
 
 	if err != nil {
@@ -44,7 +58,7 @@ func NewBTimeFactory(timeInterval int) (*BTimeFactory, error) {
 		return nil, err
 	}
 
-	return &BTimeFactory{
+	return &BTimeFactoryImpl{
 		bTimeConfig:     bTimeConfig,
 		bStringUtil:     bStringUtil,
 		bScheduleUtil:   bScheduleUtil,
@@ -55,7 +69,7 @@ func NewBTimeFactory(timeInterval int) (*BTimeFactory, error) {
 // Converts bString representation of a number into a number for calculation purposes
 //
 // NB: This is a passthrough to the configured bStringUtil
-func (btf *BTimeFactory) ParseBString(bString string) (*int64, error) {
+func (btf *BTimeFactoryImpl) ParseBString(bString string) (*int64, error) {
 	num, err := btf.bStringUtil.ParseBString(bString)
 
 	if err != nil {
@@ -69,7 +83,7 @@ func (btf *BTimeFactory) ParseBString(bString string) (*int64, error) {
 // If the appointment is invalid, it throws an error
 //
 // NB: This is a passthrough to the configured bStringUtil
-func (btf *BTimeFactory) GenerateBString(appt *models.Appointment) (*string, error) {
+func (btf *BTimeFactoryImpl) GenerateBString(appt *models.Appointment) (*string, error) {
 	bString, err := btf.bStringUtil.GenerateBString(appt)
 
 	if err != nil {
@@ -87,7 +101,7 @@ func (btf *BTimeFactory) GenerateBString(appt *models.Appointment) (*string, err
 // NB: Assumes appointments in array don't overlap
 //
 // NB: This is a passthrough to the configured bStringUtil
-func (btf *BTimeFactory) GenerateBStringFromAppointments(appointments *[]models.Appointment) (*[]string, error) {
+func (btf *BTimeFactoryImpl) GenerateBStringFromAppointments(appointments *[]models.Appointment) (*[]string, error) {
 	bString, err := btf.bStringUtil.GenerateBStringFromAppointments(appointments)
 
 	if err != nil {
@@ -100,21 +114,21 @@ func (btf *BTimeFactory) GenerateBStringFromAppointments(appointments *[]models.
 // Splits each schedule bString into a string of length defined in the regex
 //
 // NB: This is a passthrough to the configured bStringUtil
-func (btf *BTimeFactory) TimeStringSplit(scheduleString string) []string {
+func (btf *BTimeFactoryImpl) TimeStringSplit(scheduleString string) []string {
 	return btf.bStringUtil.TimeStringSplit(scheduleString)
 }
 
 // Converts number into a bString representation with the given scheduling interval
 //
 // NB: This is a passthrough to the configured bStringUtil
-func (btf *BTimeFactory) DecimalToBString(decimal float64) string {
+func (btf *BTimeFactoryImpl) DecimalToBString(decimal float64) string {
 	return btf.bStringUtil.DecimalToBString(decimal)
 }
 
 // Tests that two time intervals do not overlap, throwing an error if they do
 //
 // NB: This is a passthrough to the configured bScheduleUtil
-func (btf *BTimeFactory) TestViabilityAndCompute(binary1 int64, binary2 int64) (*int64, error) {
+func (btf *BTimeFactoryImpl) TestViabilityAndCompute(binary1 int64, binary2 int64) (*int64, error) {
 	computed, err := btf.bScheduleUtil.TestViabilityAndCompute(binary1, binary2)
 
 	if err != nil {
@@ -129,7 +143,7 @@ func (btf *BTimeFactory) TestViabilityAndCompute(binary1 int64, binary2 int64) (
 // NB: This is also used for calculating remaining availability
 //
 // NB: This is a passthrough to the configured bScheduleUtil
-func (btf *BTimeFactory) DeleteAppointment(timeSlotToDelete *models.Appointment, scheduleSlot string) (*string, error) {
+func (btf *BTimeFactoryImpl) DeleteAppointment(timeSlotToDelete *models.Appointment, scheduleSlot string) (*string, error) {
 	updatedApptBString, err := btf.bScheduleUtil.DeleteAppointment(timeSlotToDelete, scheduleSlot)
 
 	if err != nil {
@@ -144,7 +158,7 @@ func (btf *BTimeFactory) DeleteAppointment(timeSlotToDelete *models.Appointment,
 // NB: This is also used for calculating remaining availability
 //
 // NB: This is a passthrough to the configured bScheduleUtil
-func (btf *BTimeFactory) DeleteAppointmentBString(timeSlotToDelete string, scheduleSlot string) (*string, error) {
+func (btf *BTimeFactoryImpl) DeleteAppointmentBString(timeSlotToDelete string, scheduleSlot string) (*string, error) {
 	updatedApptBString, err := btf.bScheduleUtil.DeleteAppointmentBString(timeSlotToDelete, scheduleSlot)
 
 	if err != nil {
@@ -161,7 +175,7 @@ func (btf *BTimeFactory) DeleteAppointmentBString(timeSlotToDelete string, sched
 // This means that bookingsUpdate the inputs are (bookings, bookings, appt)
 //
 // NB: This is a passthrough to the configured bScheduleUtil
-func (btf *BTimeFactory) ModifyScheduleAndBooking(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error) {
+func (btf *BTimeFactoryImpl) ModifyScheduleAndBooking(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error) {
 	modifiedBookings, err := btf.bScheduleUtil.ModifyScheduleAndBooking(scheduleBStringToModify, scheduleBStringToTest, appt)
 
 	if err != nil {
@@ -174,6 +188,6 @@ func (btf *BTimeFactory) ModifyScheduleAndBooking(scheduleBStringToModify string
 // Takes a schedule and availabilty converting them into an array of appointments for each date
 //
 // NB: This is a passthrough to the configured BConversionUtil
-func (btf *BTimeFactory) ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule {
+func (btf *BTimeFactoryImpl) ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule {
 	return btf.bConversionUtil.ConvertScheduleToAppointmentSchedule(schedule, availability)
 }

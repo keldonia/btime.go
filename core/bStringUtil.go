@@ -9,9 +9,18 @@ import (
 	"github.com/keldonia/btime.go/models"
 )
 
-type BStringUtil struct {
+//go:generate mockery --name BStringUtil
+type BStringUtil interface {
+	GenerateBString(appt *models.Appointment) (*string, error)
+	GenerateBStringFromAppointments(appointments *[]models.Appointment) (*[]string, error)
+	TimeStringSplit(scheduleString string) []string
+	ParseBString(bString string) (*int64, error)
+	DecimalToBString(decimal float64) string
+}
+
+type BStringUtilImpl struct {
 	bTimeConfig        *BTimeConfig
-	bPointerCalculator *BPointerCalculator
+	bPointerCalculator BPointerCalculator
 	emptyHour          string
 	emptyDay           string
 }
@@ -21,12 +30,12 @@ type BStringUtil struct {
 //
 // NB: Typically a temporal resolution of 5 mins is sufficient,
 // as it constitutes the smallest billable unit in most juristictions
-func NewBStringUtil(bTimeConfig *BTimeConfig) (*BStringUtil, error) {
+func NewBStringUtil(bTimeConfig *BTimeConfig) (BStringUtil, error) {
 	if bTimeConfig == nil {
 		return nil, fmt.Errorf("[BStringUtil] No BTimeConfig was provided")
 	}
 
-	bPointerCalculator, err := NewBPointerCalculator(bTimeConfig)
+	bPointerCalculator, err := NewBPointerCalculatorImpl(bTimeConfig)
 
 	if err != nil {
 		return nil, err
@@ -35,7 +44,7 @@ func NewBStringUtil(bTimeConfig *BTimeConfig) (*BStringUtil, error) {
 	emptyHour := strings.Repeat(constants.ZeroPad, bTimeConfig.IntervalsInHour)
 	emptyDay := strings.Repeat(emptyHour, constants.HoursInDay)
 
-	return &BStringUtil{
+	return &BStringUtilImpl{
 		bTimeConfig:        bTimeConfig,
 		bPointerCalculator: bPointerCalculator,
 		emptyHour:          emptyHour,
@@ -45,7 +54,7 @@ func NewBStringUtil(bTimeConfig *BTimeConfig) (*BStringUtil, error) {
 
 // Generates a bString representation of a given appointment, assuming it is valid.
 // If the appointment is invalid, it will throw an error
-func (bsu *BStringUtil) GenerateBString(appt *models.Appointment) (*string, error) {
+func (bsu *BStringUtilImpl) GenerateBString(appt *models.Appointment) (*string, error) {
 	if appt.EndTime.Before(*appt.StartTime) {
 		return nil, fmt.Errorf("BString Error: Appointment can't end before it begins.  Appointment start: %s Appointment end: %s", appt.StartTime.UTC().GoString(), appt.EndTime.UTC().GoString())
 	}
@@ -69,7 +78,7 @@ func (bsu *BStringUtil) GenerateBString(appt *models.Appointment) (*string, erro
 // NB: This method generates a representation of the entire week
 //
 // NB: Assumes appointments in array don't overlap
-func (bsu *BStringUtil) GenerateBStringFromAppointments(appointments *[]models.Appointment) (*[]string, error) {
+func (bsu *BStringUtilImpl) GenerateBStringFromAppointments(appointments *[]models.Appointment) (*[]string, error) {
 	var composedBString string = ""
 
 	for i := 0; i < len(*appointments); i++ {
@@ -104,12 +113,12 @@ func (bsu *BStringUtil) GenerateBStringFromAppointments(appointments *[]models.A
 }
 
 // Splits each schedule BString into a string of length defined in the regex
-func (bsu *BStringUtil) TimeStringSplit(scheduleString string) []string {
+func (bsu *BStringUtilImpl) TimeStringSplit(scheduleString string) []string {
 	return bsu.bTimeConfig.BStringSplitRegexStr.FindAllString(scheduleString, -1)
 }
 
 // Converts bString representation of a number into a number for calculation purposes
-func (bsu *BStringUtil) ParseBString(bString string) (*int64, error) {
+func (bsu *BStringUtilImpl) ParseBString(bString string) (*int64, error) {
 	numeric, err := strconv.ParseInt(bString, 2, 64)
 
 	if err != nil {
@@ -120,6 +129,6 @@ func (bsu *BStringUtil) ParseBString(bString string) (*int64, error) {
 }
 
 // Converts number into a bString representation with the given scheduling interval
-func (bsu *BStringUtil) DecimalToBString(decimal float64) string {
+func (bsu *BStringUtilImpl) DecimalToBString(decimal float64) string {
 	return fmt.Sprintf("%0*s", bsu.bTimeConfig.IntervalsInHour, strconv.FormatInt(int64(decimal), constants.BinaryBase))
 }

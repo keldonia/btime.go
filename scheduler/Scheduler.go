@@ -10,8 +10,23 @@ import (
 	"github.com/keldonia/btime.go/utils"
 )
 
-type BSchdeuler struct {
-	bTimeFactory *core.BTimeFactory
+//go:generate mockery --name BScheduler
+type BScheduler interface {
+	UpdateScheduleWithAppointmentSchedule(proposedAppointmentSchedule *models.AppointmentSchedule, schedule *models.Schedule) (*models.AppointmentSchedule, error)
+	ConvertScheduleToAppointmentSchedule(schedule *models.Schedule) (*models.AppointmentSchedule, error)
+	GetCurrentAvailability(schedule *models.Schedule) (*[]string, error)
+	UpdateSchedule(proposedSchedule *models.Schedule, schedule *models.Schedule) (*models.Schedule, error)
+	ProcessAppointments(appointments *[]models.Appointment, schedule *models.Schedule, actionType constants.ScheduleAction) (*models.Schedule, error)
+	ProcessAppointment(appointment *models.Appointment, schedule *models.Schedule, actionType constants.ScheduleAction) (*models.Schedule, error)
+	ComposeAppointments(appointment *models.Appointment) *models.AppointmentDuo
+	HandleBookingUpdate(appointment *models.Appointment, schedule *models.Schedule, firstAppt *models.Appointment) (*models.Schedule, error)
+	HandleBookingUpdateBString(appointmentsBStrings []string, schedule *models.Schedule) (*models.Schedule, error)
+	DeleteAppointment(appointment *models.Appointment, schedule *models.Schedule, firstAppt *models.Appointment) (*models.Schedule, error)
+	DeleteAppointments(appointmentsBStrings []string, schedule *models.Schedule) (*models.Schedule, error)
+}
+
+type BSchedulerImpl struct {
+	bTimeFactory core.BTimeFactory
 }
 
 // Instantiates a new BScheduler, is responsible or maintaining of scheduling using binary Scheduler
@@ -21,21 +36,21 @@ type BSchdeuler struct {
 // NB: The time interval must be a factor of 60,
 //
 //	ie. 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, or 60
-func NewBScheduler(timeInterval int) (*BSchdeuler, error) {
+func NewBScheduler(timeInterval int) (BScheduler, error) {
 	bTimeFactory, err := core.NewBTimeFactory(timeInterval)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &BSchdeuler{
+	return &BSchedulerImpl{
 		bTimeFactory: bTimeFactory,
 	}, nil
 }
 
 // Tests a proposed appointment schedule update and updates the schedule,
 // if theupdate is valid or throws an error if the update is not valid
-func (bs *BSchdeuler) UpdateScheduleWithAppointmentSchedule(proposedAppointmentSchedule *models.AppointmentSchedule, schedule *models.Schedule) (*models.AppointmentSchedule, error) {
+func (bs *BSchedulerImpl) UpdateScheduleWithAppointmentSchedule(proposedAppointmentSchedule *models.AppointmentSchedule, schedule *models.Schedule) (*models.AppointmentSchedule, error) {
 	scheduleAppointments := []models.Appointment{}
 
 	for i := 0; i < len(*proposedAppointmentSchedule.Schedule); i++ {
@@ -75,7 +90,7 @@ func (bs *BSchdeuler) UpdateScheduleWithAppointmentSchedule(proposedAppointmentS
 // Takes a schedule and converts into an array of appointments for each date
 //
 // NB: This is a passthrough to the configured BTimeFactory
-func (bs *BSchdeuler) ConvertScheduleToAppointmentSchedule(schedule *models.Schedule) (*models.AppointmentSchedule, error) {
+func (bs *BSchedulerImpl) ConvertScheduleToAppointmentSchedule(schedule *models.Schedule) (*models.AppointmentSchedule, error) {
 	availability, err := bs.GetCurrentAvailability(schedule)
 
 	if err != nil {
@@ -90,7 +105,7 @@ func (bs *BSchdeuler) ConvertScheduleToAppointmentSchedule(schedule *models.Sche
 // Takes a valid schedule and computes the remaining availability
 // based on the total availability and current bookings, throws an error if an
 // invalid scehdule is passed
-func (bs *BSchdeuler) GetCurrentAvailability(schedule *models.Schedule) (*[]string, error) {
+func (bs *BSchedulerImpl) GetCurrentAvailability(schedule *models.Schedule) (*[]string, error) {
 	totalRemainingAvailability := []string{}
 
 	for i := 0; i < constants.DaysInWeek; i++ {
@@ -131,7 +146,7 @@ func (bs *BSchdeuler) GetCurrentAvailability(schedule *models.Schedule) (*[]stri
 
 // Tests a propsoed schedule update and updates the schedule,
 // if the update is valid or throws an error if the update is not valid
-func (bs *BSchdeuler) UpdateSchedule(proposedSchedule *models.Schedule, schedule *models.Schedule) (*models.Schedule, error) {
+func (bs *BSchedulerImpl) UpdateSchedule(proposedSchedule *models.Schedule, schedule *models.Schedule) (*models.Schedule, error) {
 	for i := 0; i < constants.DaysInWeek; i++ {
 		// We test that no bookings fall outside of the scheduled availability
 		proposed := (*proposedSchedule.Schedule)[i]
@@ -171,7 +186,7 @@ func (bs *BSchdeuler) UpdateSchedule(proposedSchedule *models.Schedule, schedule
 
 // Takes an slice of appointments and update type and tests if the appointment updates are valid,
 // if not it throws an error, if they are the schedule is updated
-func (bs *BSchdeuler) ProcessAppointments(appointments *[]models.Appointment, schedule *models.Schedule, actionType constants.ScheduleAction) (*models.Schedule, error) {
+func (bs *BSchedulerImpl) ProcessAppointments(appointments *[]models.Appointment, schedule *models.Schedule, actionType constants.ScheduleAction) (*models.Schedule, error) {
 	appointmentsBStrings, err := bs.bTimeFactory.GenerateBStringFromAppointments(appointments)
 
 	if err != nil {
@@ -191,7 +206,7 @@ func (bs *BSchdeuler) ProcessAppointments(appointments *[]models.Appointment, sc
 
 // Takes an appointment and update type and tests if the appointment update is valid,
 // if not it throws an error, if it is the schedule is updated
-func (bs *BSchdeuler) ProcessAppointment(appointment *models.Appointment, schedule *models.Schedule, actionType constants.ScheduleAction) (*models.Schedule, error) {
+func (bs *BSchedulerImpl) ProcessAppointment(appointment *models.Appointment, schedule *models.Schedule, actionType constants.ScheduleAction) (*models.Schedule, error) {
 	crossesDayBoundary := utils.CrossesDayBoundary(*appointment)
 	var firstAppt *models.Appointment
 
@@ -214,7 +229,7 @@ func (bs *BSchdeuler) ProcessAppointment(appointment *models.Appointment, schedu
 }
 
 // Utility function to split appointments that cross the day boundary
-func (bs *BSchdeuler) ComposeAppointments(appointment *models.Appointment) *models.AppointmentDuo {
+func (bs *BSchedulerImpl) ComposeAppointments(appointment *models.Appointment) *models.AppointmentDuo {
 	utcAppt := utils.EnforceUTC(appointment)
 	utcStartTime := utcAppt.StartTime
 	utcEndTime := utcAppt.EndTime
@@ -237,7 +252,7 @@ func (bs *BSchdeuler) ComposeAppointments(appointment *models.Appointment) *mode
 }
 
 // Takes an appointment and tests if the appointment update is valid, if not it throws an error, if it is the schedule is updated
-func (bs *BSchdeuler) HandleBookingUpdate(appointment *models.Appointment, schedule *models.Schedule, firstAppt *models.Appointment) (*models.Schedule, error) {
+func (bs *BSchedulerImpl) HandleBookingUpdate(appointment *models.Appointment, schedule *models.Schedule, firstAppt *models.Appointment) (*models.Schedule, error) {
 	var startDay int = int(appointment.StartTime.UTC().Weekday())
 	endDay := int(appointment.EndTime.UTC().Weekday())
 
@@ -284,7 +299,7 @@ func (bs *BSchdeuler) HandleBookingUpdate(appointment *models.Appointment, sched
 }
 
 // Takes an array of appointments and tests if the appointment update are valid, if not it throws an error, if they are the schedule is updated
-func (bs *BSchdeuler) HandleBookingUpdateBString(appointmentsBStrings []string, schedule *models.Schedule) (*models.Schedule, error) {
+func (bs *BSchedulerImpl) HandleBookingUpdateBString(appointmentsBStrings []string, schedule *models.Schedule) (*models.Schedule, error) {
 	bookings := []string{}
 
 	for i := 0; i < constants.DaysInWeek; i++ {
@@ -308,7 +323,7 @@ func (bs *BSchdeuler) HandleBookingUpdateBString(appointmentsBStrings []string, 
 
 // Takes an appointment and tests if the appointment to delete is valid, if not throws an error,
 // if it is the schedule is updated to reflect the deletion
-func (bs *BSchdeuler) DeleteAppointment(appointment *models.Appointment, schedule *models.Schedule, firstAppt *models.Appointment) (*models.Schedule, error) {
+func (bs *BSchedulerImpl) DeleteAppointment(appointment *models.Appointment, schedule *models.Schedule, firstAppt *models.Appointment) (*models.Schedule, error) {
 	var startDay int = int(appointment.StartTime.UTC().Weekday())
 	endDay := int(appointment.EndTime.UTC().Weekday())
 
@@ -335,7 +350,7 @@ func (bs *BSchdeuler) DeleteAppointment(appointment *models.Appointment, schedul
 
 // Takes an array of appointments and tests if the appointments to delete are valid, if not throws an error,
 // if they are the schedule is updated to reflect the deletion
-func (bs *BSchdeuler) DeleteAppointments(appointmentsBStrings []string, schedule *models.Schedule) (*models.Schedule, error) {
+func (bs *BSchedulerImpl) DeleteAppointments(appointmentsBStrings []string, schedule *models.Schedule) (*models.Schedule, error) {
 	bookings := []string{}
 
 	for i := 0; i < constants.DaysInWeek; i++ {

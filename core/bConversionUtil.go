@@ -9,24 +9,31 @@ import (
 	"github.com/keldonia/btime.go/utils"
 )
 
-type BConversionUtil struct {
+//go:generate mockery --name BConversionUtil
+type BConversionUtil interface {
+	ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule
+	ConvertTimeSlotsStringToAppointments(timeSlots string, date *time.Time) *[]models.Appointment
+	CalculateDate(timePointerIndex int, baseDate *time.Time, end bool) *time.Time
+}
+
+type BConversionUtilImpl struct {
 	bTimeConfig *BTimeConfig
 }
 
 // Instantiates a new BinaryConversionUtil, which is responsible for handling the conversion of schedules to Appointments
-func NewBConversionUtil(bTimeConfig *BTimeConfig) (*BConversionUtil, error) {
+func NewBConversionUtil(bTimeConfig *BTimeConfig) (BConversionUtil, error) {
 	if bTimeConfig == nil {
 		return nil, fmt.Errorf("[BConversionUtil] No BTimeConfig was provided")
 	}
 
-	return &BConversionUtil{
+	return &BConversionUtilImpl{
 		bTimeConfig: bTimeConfig,
 	}, nil
 }
 
 // Takes a schedule and the schedule's remaining availability,
 // and converts each of the bTime representations into Appointment arrays
-func (bcu *BConversionUtil) ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule {
+func (bcu *BConversionUtilImpl) ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule {
 	days := utils.GetDatesFromStartDate(schedule.WeekStart)
 	appointmentAvailability := [][]models.Appointment{}
 	appointmentBookings := [][]models.Appointment{}
@@ -62,7 +69,7 @@ func (bcu *BConversionUtil) ConvertScheduleToAppointmentSchedule(schedule *model
 }
 
 // Takes a set of timeslots and the date on which they occurred and converts them into Appointments
-func (bcu *BConversionUtil) ConvertTimeSlotsStringToAppointments(timeSlots string, date *time.Time) *[]models.Appointment {
+func (bcu *BConversionUtilImpl) ConvertTimeSlotsStringToAppointments(timeSlots string, date *time.Time) *[]models.Appointment {
 	appointments := []models.Appointment{}
 	var currentStart *time.Time
 
@@ -96,7 +103,7 @@ func (bcu *BConversionUtil) ConvertTimeSlotsStringToAppointments(timeSlots strin
 
 // Takes a  time pointer, base date — the date on which it occured,
 // and boolean if it is the end of an appointmen and converts it into a Date
-func (bcu *BConversionUtil) CalculateDate(timePointerIndex int, baseDate *time.Time, end bool) *time.Time {
+func (bcu *BConversionUtilImpl) CalculateDate(timePointerIndex int, baseDate *time.Time, end bool) *time.Time {
 	hourMarker := float64(timePointerIndex / bcu.bTimeConfig.IntervalsInHour)
 	hours := int(math.Floor(hourMarker))
 	minutes := timePointerIndex % bcu.bTimeConfig.IntervalsInHour * bcu.bTimeConfig.TimeInterval
