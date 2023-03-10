@@ -20,43 +20,28 @@ func TestBadBScheduleUtilSetup(t *testing.T) {
 	}
 }
 
-func TestMergeScheduleBStringWithTest(t *testing.T) {
-	timeInterval := 5
-	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
-	bScheduleUtil, _ := NewBScheduleUtil(bTimeConfig)
+func TestMergeScheduleBStringsWithTestInvalidAppt(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+	two := 2
+	appt1 := generateApptFromHoursAndMins(1, 0, 1, 24, two, two)
+	appt2 := bTimeConfig.EmptyDay
+	errorStr := "New Error"
 
-	type test struct {
-		Appt1    string
-		Appt2    string
-		Error    bool
-		Expected string
+	bStringUtil.On("GenerateBString", &appt1).Return(nil, fmt.Errorf(errorStr))
+
+	merged, err := bScheduleUtil.MergeScheduleBStringsWithTest(&appt1, appt2)
+
+	if merged != nil {
+		t.Fatalf("expected merged to be nil, received: %s", *merged)
 	}
 
-	tests := []test{
-		{Appt1: "000011110000", Appt2: "000000000011", Error: false, Expected: "000011110011"},
-		{Appt1: "000000000000", Appt2: "000000000011", Error: false, Expected: "000000000011"},
-		{Appt1: "000011110000", Appt2: "000000000000", Error: false, Expected: "000011110000"},
-		{Appt1: "011000000000", Appt2: "000000011000", Error: false, Expected: "011000011000"},
-		{Appt1: "100000000000", Appt2: "000000011111", Error: false, Expected: "100000011111"},
-		{Appt1: "011110000000", Appt2: "000011110000", Error: true, Expected: ""},
-		{Appt1: "110000000000", Appt2: "111100000000", Error: true, Expected: ""},
-		{Appt1: "000000000111", Appt2: "000000111110", Error: true, Expected: ""},
-	}
-
-	for i := 0; i < len(tests); i++ {
-		tc := tests[i]
-		name := fmt.Sprintf("should expect binary appts of %s & %s to return %s", tc.Appt1, tc.Appt2, tc.Expected)
-		t.Run(name, func(t *testing.T) {
-			computed, err := bScheduleUtil.MergeScheduleBStringWithTest(tc.Appt1, tc.Appt2)
-
-			if tc.Error && err == nil {
-				t.Fatalf("did not received expected error")
-			}
-
-			if !tc.Error && strings.Compare(tc.Expected, *computed) != 0 {
-				t.Fatalf("expected %s, received %s", tc.Expected, *computed)
-			}
-		})
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received %s", err.Error())
 	}
 }
 
@@ -98,6 +83,99 @@ func TestLoopMergeScheduleBStringWithTest(t *testing.T) {
 
 			if !tc.Error && strings.Compare(tc.Expected, *mergedBString) != 0 {
 				t.Fatalf("expected %s, received %s", tc.Expected, *mergedBString)
+			}
+		})
+	}
+}
+
+func TestMergeScheduleBStringWithTestInvalidSchedule(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+
+	errorStr := "New Error"
+	timeSlotBString := "000000011000"
+	schedule := "000011110000"
+
+	bStringUtil.On("ParseBString", schedule).Return(nil, fmt.Errorf(errorStr))
+
+	merged, err := bScheduleUtil.MergeScheduleBStringWithTest(timeSlotBString, schedule)
+
+	if merged != nil {
+		t.Fatalf("expected merged to be nil, received: %s", *merged)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
+	}
+}
+
+func TestMergeScheduleBStringWithTestInvalidTimeSlotBString(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+
+	errorStr := "New Error"
+	timeSlotBString := "000000011000"
+	schedule := "000011110000"
+
+	scheduleInt := int64(240)
+
+	bStringUtil.On("ParseBString", schedule).Return(&scheduleInt, nil)
+	bStringUtil.On("ParseBString", timeSlotBString).Return(nil, fmt.Errorf(errorStr))
+
+	merged, err := bScheduleUtil.MergeScheduleBStringWithTest(timeSlotBString, schedule)
+
+	if merged != nil {
+		t.Fatalf("expected merged to be nil, received: %s", *merged)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
+	}
+}
+
+func TestMergeScheduleBStringWithTest(t *testing.T) {
+	timeInterval := 5
+	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
+	bScheduleUtil, _ := NewBScheduleUtil(bTimeConfig)
+
+	type test struct {
+		Appt1    string
+		Appt2    string
+		Error    bool
+		Expected string
+	}
+
+	tests := []test{
+		{Appt1: "000011110000", Appt2: "000000000011", Error: false, Expected: "000011110011"},
+		{Appt1: "000000000000", Appt2: "000000000011", Error: false, Expected: "000000000011"},
+		{Appt1: "000011110000", Appt2: "000000000000", Error: false, Expected: "000011110000"},
+		{Appt1: "011000000000", Appt2: "000000011000", Error: false, Expected: "011000011000"},
+		{Appt1: "100000000000", Appt2: "000000011111", Error: false, Expected: "100000011111"},
+		{Appt1: "011110000000", Appt2: "000011110000", Error: true, Expected: ""},
+		{Appt1: "110000000000", Appt2: "111100000000", Error: true, Expected: ""},
+		{Appt1: "000000000111", Appt2: "000000111110", Error: true, Expected: ""},
+	}
+
+	for i := 0; i < len(tests); i++ {
+		tc := tests[i]
+		name := fmt.Sprintf("should expect binary appts of %s & %s to return %s", tc.Appt1, tc.Appt2, tc.Expected)
+		t.Run(name, func(t *testing.T) {
+			computed, err := bScheduleUtil.MergeScheduleBStringWithTest(tc.Appt1, tc.Appt2)
+
+			if tc.Error && err == nil {
+				t.Fatalf("did not received expected error")
+			}
+
+			if !tc.Error && strings.Compare(tc.Expected, *computed) != 0 {
+				t.Fatalf("expected %s, received %s", tc.Expected, *computed)
 			}
 		})
 	}
@@ -169,6 +247,90 @@ func TestModifyScheduleAndBookingMultipleIntervals(t *testing.T) {
 	}
 }
 
+func TestModifyScheduleAndBookingIntervalInvalidScheduleToModify(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+
+	errorStr := "New Error"
+	scheduleToModify := "000011110000"
+	scheduleBStringToTest := "000011111111"
+	appt := "000000000011"
+
+	bStringUtil.On("ParseBString", scheduleToModify).Return(nil, fmt.Errorf(errorStr))
+
+	merged, err := bScheduleUtil.ModifyScheduleAndBookingInterval(scheduleToModify, scheduleBStringToTest, appt)
+
+	if merged != nil {
+		t.Fatalf("expected merged to be nil, received: %s", *merged)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
+	}
+}
+
+func TestModifyScheduleAndBookingIntervalInvalidScheduleToTest(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+
+	errorStr := "New Error"
+	scheduleToModify := "000011110000"
+	scheduleBStringToTest := "000011111111"
+	appt := "000000000011"
+	parsedModify := int64(240)
+
+	bStringUtil.On("ParseBString", scheduleToModify).Return(&parsedModify, nil)
+	bStringUtil.On("ParseBString", scheduleBStringToTest).Return(nil, fmt.Errorf(errorStr))
+
+	merged, err := bScheduleUtil.ModifyScheduleAndBookingInterval(scheduleToModify, scheduleBStringToTest, appt)
+
+	if merged != nil {
+		t.Fatalf("expected merged to be nil, received: %s", *merged)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
+	}
+}
+
+func TestModifyScheduleAndBookingIntervalInvalidAppt(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+
+	errorStr := "New Error"
+	scheduleToModify := "000011110000"
+	scheduleBStringToTest := "000011111111"
+	appt := "000000000011"
+	parsedModify := int64(240)
+	parsedTest := int64(255)
+
+	bStringUtil.On("ParseBString", scheduleToModify).Return(&parsedModify, nil)
+	bStringUtil.On("ParseBString", scheduleBStringToTest).Return(&parsedTest, nil)
+	bStringUtil.On("ParseBString", appt).Return(nil, fmt.Errorf(errorStr))
+
+	merged, err := bScheduleUtil.ModifyScheduleAndBookingInterval(scheduleToModify, scheduleBStringToTest, appt)
+
+	if merged != nil {
+		t.Fatalf("expected merged to be nil, received: %s", *merged)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
+	}
+}
+
 func TestModifyScheduleAndBookingInterval(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
@@ -209,6 +371,31 @@ func TestModifyScheduleAndBookingInterval(t *testing.T) {
 				t.Fatalf("expected %s, received %s", tc.Expected, *mergedBString)
 			}
 		})
+	}
+}
+
+func TestDeleteAppointmentDeleteAppointment(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+	errorStr := "New Error"
+
+	timeSlotToDelete := generateApptFromHoursAndMins(1, 0, 1, 24, 2, 2)
+	scheduleSlot := bTimeConfig.EmptyHour
+
+	bStringUtil.On("GenerateBString", &timeSlotToDelete).Return(nil, fmt.Errorf(errorStr))
+
+	updated, err := bScheduleUtil.DeleteAppointment(&timeSlotToDelete, scheduleSlot)
+
+	if updated != nil {
+		t.Fatalf("expected updated to be nil, received: %s", *updated)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
 	}
 }
 
@@ -268,6 +455,58 @@ func TestDeleteAppointmentShouldFailIfPassedInvalidApptToDelete(t *testing.T) {
 
 	if err == nil {
 		t.Fatal("Did not received expected error")
+	}
+}
+
+func TestDeleteAppointmentIntervalInvalidScheduleInterval(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+	errorStr := "New Error"
+
+	bStringToDelete := "000000000011"
+	scheduleSlot := "000011110011"
+
+	bStringUtil.On("ParseBString", scheduleSlot).Return(nil, fmt.Errorf(errorStr))
+
+	updated, err := bScheduleUtil.DeleteAppointmentInterval(bStringToDelete, scheduleSlot)
+
+	if updated != nil {
+		t.Fatalf("expected updated to be nil, received: %s", *updated)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
+	}
+}
+
+func TestDeleteAppointmentIntervalInvalidBStringToDelete(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+	errorStr := "New Error"
+
+	bStringToDelete := "000000000011"
+	scheduleSlot := "000011110011"
+	parsedSchedule := int64(243)
+
+	bStringUtil.On("ParseBString", scheduleSlot).Return(&parsedSchedule, nil)
+	bStringUtil.On("ParseBString", bStringToDelete).Return(nil, fmt.Errorf(errorStr))
+
+	updated, err := bScheduleUtil.DeleteAppointmentInterval(bStringToDelete, scheduleSlot)
+
+	if updated != nil {
+		t.Fatalf("expected updated to be nil, received: %s", *updated)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
 	}
 }
 
