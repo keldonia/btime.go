@@ -6,10 +6,22 @@ import (
 	"time"
 )
 
+func TestBadBPointerCalculatorSetup(t *testing.T) {
+	bPointerCalculator, err := NewBPointerCalculator(nil)
+
+	if bPointerCalculator != nil {
+		t.Fatalf("expected bPointerCalculator to be nil")
+	}
+
+	if err.Error() != "[BPointerCalculator] No BTimeConfig was provided" {
+		t.Fatalf("received an unexpected error: %s", err.Error())
+	}
+}
+
 func TestFindBPointerIncludingDay5MinInterval(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
-	bPointerCalculator, _ := NewBPointerCalculatorImpl(bTimeConfig)
+	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
 
 	type test struct {
 		Hour     int
@@ -56,7 +68,7 @@ func TestFindBPointerIncludingDay5MinInterval(t *testing.T) {
 func TestFindBPointerModiferForDayOfWeek(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
-	bPointerCalculator, _ := NewBPointerCalculatorImpl(bTimeConfig)
+	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
 
 	type test struct {
 		Date     string
@@ -98,7 +110,7 @@ func TestFindBPointer(t *testing.T) {
 
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
-	bPointerCalculator, _ := NewBPointerCalculatorImpl(bTimeConfig)
+	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
 
 	tests := []test{
 		{Hour: 0, Minute: 0, Expected: 0},

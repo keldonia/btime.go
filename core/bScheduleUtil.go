@@ -33,11 +33,8 @@ func NewBScheduleUtil(bTimeConfig *BTimeConfig) (BScheduleUtil, error) {
 		return nil, fmt.Errorf("[BScheduleUtil] No BTimeConfig was provided")
 	}
 
-	bStringUtil, err := NewBStringUtil(bTimeConfig)
-
-	if err != nil {
-		return nil, err
-	}
+	// We already checked that bTimeConfig will not be nil
+	bStringUtil, _ := NewBStringUtil(bTimeConfig)
 
 	return &BScheduleUtilImpl{
 		bTimeConfig: bTimeConfig,

@@ -8,6 +8,18 @@ import (
 	"github.com/keldonia/btime.go/models"
 )
 
+func TestBadBScheduleUtilSetup(t *testing.T) {
+	bScheduleUtil, err := NewBScheduleUtil(nil)
+
+	if bScheduleUtil != nil {
+		t.Fatalf("expected bScheduleUtil to be nil")
+	}
+
+	if err.Error() != "[BScheduleUtil] No BTimeConfig was provided" {
+		t.Fatalf("received an unexpected error: %s", err.Error())
+	}
+}
+
 func TestMergeScheduleBStringWithTest(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)

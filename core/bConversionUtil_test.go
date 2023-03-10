@@ -77,6 +77,18 @@ func generateApptFromDateStrings(startStr string, endStr string) models.Appointm
 	}
 }
 
+func TestBadBConversionUtilSetup(t *testing.T) {
+	bConversionUtil, err := NewBConversionUtil(nil)
+
+	if bConversionUtil != nil {
+		t.Fatalf("expected bConversionUtil to be nil")
+	}
+
+	if err.Error() != "[BConversionUtil] No BTimeConfig was provided" {
+		t.Fatalf("received an unexpected error: %s", err.Error())
+	}
+}
+
 func TestConvertScheduleToAppointmentSchedule(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)

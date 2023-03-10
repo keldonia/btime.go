@@ -20,9 +20,9 @@ type BPointerCalculatorImpl struct {
 }
 
 // Instantiates a new BPointerCalculatorImpl, which is responsible for calculating bPointers, for use by other bTime classes
-func NewBPointerCalculatorImpl(bTimeConfig *BTimeConfig) (BPointerCalculator, error) {
+func NewBPointerCalculator(bTimeConfig *BTimeConfig) (BPointerCalculator, error) {
 	if bTimeConfig == nil {
-		return nil, fmt.Errorf("[BPointerCalculatorImpl] No BTimeConfig was provided")
+		return nil, fmt.Errorf("[BPointerCalculator] No BTimeConfig was provided")
 	}
 
 	return &BPointerCalculatorImpl{

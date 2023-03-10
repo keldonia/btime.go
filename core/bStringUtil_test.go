@@ -20,6 +20,18 @@ func generateApptFromHoursAndMins(startHour int, startMin int, endHour int, endM
 	}
 }
 
+func TestBadBStringUtilSetup(t *testing.T) {
+	bStringUtil, err := NewBStringUtil(nil)
+
+	if bStringUtil != nil {
+		t.Fatalf("expected bStringUtil to be nil")
+	}
+
+	if err.Error() != "[BStringUtil] No BTimeConfig was provided" {
+		t.Fatalf("received an unexpected error: %s", err.Error())
+	}
+}
+
 func TestGenerateBString(t *testing.T) {
 	two := 2
 	timeInterval := 5
@@ -314,6 +326,21 @@ func TestParsedBString(t *testing.T) {
 				t.Fatalf("expected %d received %d", tc.Expected, *computed)
 			}
 		})
+	}
+}
+
+func TestParseInvalidBString(t *testing.T) {
+	timeInterval := 5
+	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
+	bStringUtil, _ := NewBStringUtil(bTimeConfig)
+
+	parsed, err := bStringUtil.ParseBString("")
+
+	if parsed != nil {
+		t.Fatalf("expected parsed bString to be nil, received: %d", *parsed)
+	}
+	if err == nil {
+		t.Fatalf("expected an error none was received")
 	}
 }
 

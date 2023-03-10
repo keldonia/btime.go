@@ -40,23 +40,10 @@ func NewBTimeFactory(timeInterval int) (BTimeFactory, error) {
 		return nil, err
 	}
 
-	bStringUtil, err := NewBStringUtil(bTimeConfig)
-
-	if err != nil {
-		return nil, err
-	}
-
-	bScheduleUtil, err := NewBScheduleUtil(bTimeConfig)
-
-	if err != nil {
-		return nil, err
-	}
-
-	bConversionUtil, err := NewBConversionUtil(bTimeConfig)
-
-	if err != nil {
-		return nil, err
-	}
+	// We already checked that bTimeConfig will not be nil
+	bStringUtil, _ := NewBStringUtil(bTimeConfig)
+	bScheduleUtil, _ := NewBScheduleUtil(bTimeConfig)
+	bConversionUtil, _ := NewBConversionUtil(bTimeConfig)
 
 	return &BTimeFactoryImpl{
 		bTimeConfig:     bTimeConfig,

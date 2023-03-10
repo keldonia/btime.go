@@ -35,11 +35,8 @@ func NewBStringUtil(bTimeConfig *BTimeConfig) (BStringUtil, error) {
 		return nil, fmt.Errorf("[BStringUtil] No BTimeConfig was provided")
 	}
 
-	bPointerCalculator, err := NewBPointerCalculatorImpl(bTimeConfig)
-
-	if err != nil {
-		return nil, err
-	}
+	// We already checked that bTimeConfig will not be nil
+	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
 
 	emptyHour := strings.Repeat(constants.ZeroPad, bTimeConfig.IntervalsInHour)
 	emptyDay := strings.Repeat(emptyHour, constants.HoursInDay)
