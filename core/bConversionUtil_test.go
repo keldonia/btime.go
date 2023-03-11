@@ -89,6 +89,94 @@ func TestBadBConversionUtilSetup(t *testing.T) {
 	}
 }
 
+func TestComplexConvertScheduleToAppointmentSchedule(t *testing.T) {
+	timeInterval := 5
+	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
+	bConversionUtil, _ := NewBConversionUtil(bTimeConfig)
+	bStringUtil, _ := NewBStringUtil(bTimeConfig)
+
+	scheduledAvail := []models.Appointment{
+		generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+		generateApptFromHoursAndMins(12, 0, 17, 0, 3, 3),
+		generateApptFromHoursAndMins(12, 0, 17, 0, 4, 4),
+		generateApptFromHoursAndMins(12, 0, 17, 0, 5, 5),
+		generateApptFromHoursAndMins(12, 0, 17, 0, 6, 6),
+		generateApptFromHoursAndMins(12, 0, 17, 0, 7, 7),
+		generateApptFromHoursAndMins(12, 0, 17, 0, 8, 8),
+	}
+	bookings := []models.Appointment{
+		generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+		generateApptFromHoursAndMins(13, 0, 17, 0, 3, 3),
+		generateApptFromHoursAndMins(13, 0, 17, 0, 4, 4),
+		generateApptFromHoursAndMins(13, 0, 17, 0, 5, 5),
+		generateApptFromHoursAndMins(13, 0, 17, 0, 6, 6),
+		generateApptFromHoursAndMins(13, 0, 17, 0, 7, 7),
+		generateApptFromHoursAndMins(13, 0, 17, 0, 8, 8),
+	}
+
+	baseDate, _ := time.Parse("2006-01-02T15:04:05Z", "2020-02-09T00:00:00Z")
+	scheduledAvailStr, _ := bStringUtil.GenerateBStringFromAppointments(&scheduledAvail)
+	bookingsStr, _ := bStringUtil.GenerateBStringFromAppointments(&bookings)
+	schedule := models.Schedule{
+		Schedule:  scheduledAvailStr,
+		Bookings:  bookingsStr,
+		WeekStart: &baseDate,
+	}
+
+	emptyAvail := generateEmptyWeek(timeInterval)
+
+	expectedAppointmentSchedule := models.AppointmentSchedule{
+		Schedule: &[][]models.Appointment{
+			{generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2)},
+			{generateApptFromHoursAndMins(12, 0, 17, 0, 3, 3)},
+			{generateApptFromHoursAndMins(12, 0, 17, 0, 4, 4)},
+			{generateApptFromHoursAndMins(12, 0, 17, 0, 5, 5)},
+			{generateApptFromHoursAndMins(12, 0, 17, 0, 6, 6)},
+			{generateApptFromHoursAndMins(12, 0, 17, 0, 7, 7)},
+			{generateApptFromHoursAndMins(12, 0, 17, 0, 8, 8)},
+		},
+		Bookings: &[][]models.Appointment{
+			{generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2)},
+			{generateApptFromHoursAndMins(13, 0, 17, 0, 3, 3)},
+			{generateApptFromHoursAndMins(13, 0, 17, 0, 4, 4)},
+			{generateApptFromHoursAndMins(13, 0, 17, 0, 5, 5)},
+			{generateApptFromHoursAndMins(13, 0, 17, 0, 6, 6)},
+			{generateApptFromHoursAndMins(13, 0, 17, 0, 7, 7)},
+			{generateApptFromHoursAndMins(13, 0, 17, 0, 8, 8)},
+		},
+		Availability: &[][]models.Appointment{
+			{},
+			{generateApptFromHoursAndMins(12, 0, 12, 55, 3, 3)},
+			{generateApptFromHoursAndMins(12, 0, 12, 55, 4, 4)},
+			{generateApptFromHoursAndMins(12, 0, 12, 55, 5, 5)},
+			{generateApptFromHoursAndMins(12, 0, 12, 55, 6, 6)},
+			{generateApptFromHoursAndMins(12, 0, 12, 55, 7, 7)},
+			{generateApptFromHoursAndMins(12, 0, 12, 55, 8, 8)},
+		},
+		WeekStart: &baseDate,
+	}
+
+	computedAppointmentSchedule := bConversionUtil.ConvertScheduleToAppointmentSchedule(&schedule, emptyAvail)
+
+	var equal bool = true
+	equal = len(*expectedAppointmentSchedule.Schedule) == len(*computedAppointmentSchedule.Schedule)
+	if !equal {
+		t.Fatalf("schedules are not equal, schedule1: %s, schedule2: %s", expectedAppointmentSchedule.Schedule, computedAppointmentSchedule.Schedule)
+	}
+	equal = len(*expectedAppointmentSchedule.Bookings) == len(*computedAppointmentSchedule.Bookings)
+	if !equal {
+		t.Fatalf("bookings are not equal")
+	}
+	equal = len(*expectedAppointmentSchedule.Availability) == len(*computedAppointmentSchedule.Availability)
+	if !equal {
+		t.Fatalf("availability are not equal")
+	}
+	equal = expectedAppointmentSchedule.WeekStart.Equal(*computedAppointmentSchedule.WeekStart)
+	if !equal {
+		t.Fatalf("weekStart are not equal")
+	}
+}
+
 func TestConvertScheduleToAppointmentSchedule(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)

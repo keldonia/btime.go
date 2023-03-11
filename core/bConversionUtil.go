@@ -42,8 +42,8 @@ func (bcu *BConversionUtilImpl) ConvertScheduleToAppointmentSchedule(schedule *m
 	for i := 0; i < len(availability); i++ {
 		avail := availability[i]
 		day := days[i]
-		appointment := bcu.ConvertTimeSlotsStringToAppointments(avail, &day)
-		appointmentAvailability = append(appointmentAvailability, *appointment)
+		appointments := bcu.ConvertTimeSlotsStringToAppointments(avail, &day)
+		appointmentAvailability = append(appointmentAvailability, *appointments)
 	}
 
 	for i := 0; i < len(*schedule.Bookings); i++ {
