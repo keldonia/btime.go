@@ -36,7 +36,6 @@ func TestNewBTimeFactoryinvalidInput(t *testing.T) {
 	if bTimeFactory != nil {
 		t.Fatalf("expected bTimeFactory to not be generated")
 	}
-
 }
 
 func TestParseeBStringProperlyCalled(t *testing.T) {
@@ -44,12 +43,14 @@ func TestParseeBStringProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg := "01"
@@ -68,12 +69,14 @@ func TestParseeBStringInvalid(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg := "01"
@@ -97,12 +100,14 @@ func TestGenerateBStringProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg := generateApptFromHoursAndMins(1, 10, 2, 20, 2, 2)
@@ -121,12 +126,14 @@ func TestGenerateBStringInvalid(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg := generateApptFromHoursAndMins(1, 10, 2, 20, 2, 2)
@@ -150,12 +157,14 @@ func TestGenerateBStringFromAppointmentsProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg := []models.Appointment{generateApptFromHoursAndMins(1, 10, 2, 20, 2, 2)}
@@ -174,12 +183,14 @@ func TestGenerateBStringFromAppointmentsInvalid(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg := []models.Appointment{generateApptFromHoursAndMins(1, 10, 2, 20, 2, 2)}
@@ -203,12 +214,14 @@ func TestTimeStringSplitProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg := bTimeConfig.EmptyDay
@@ -226,12 +239,14 @@ func TestDecimalToBStringProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg := float64(1)
@@ -249,12 +264,14 @@ func TestTestViabilityAndComputeInvalid(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg1 := int64(1)
@@ -278,12 +295,14 @@ func TestTestViabilityAndComputeProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg1 := int64(1)
@@ -303,12 +322,14 @@ func TestDeleteAppointmentInvalid(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg1 := generateApptFromHoursAndMins(1, 10, 2, 20, 2, 2)
@@ -333,12 +354,14 @@ func TestDeleteAppointmentProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg1 := generateApptFromHoursAndMins(1, 10, 2, 20, 2, 2)
@@ -358,12 +381,14 @@ func TestDeleteAppointmentBStringInvalid(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg1 := "01"
@@ -388,12 +413,14 @@ func TestDeleteAppointmentBStringProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg1 := "01"
@@ -413,12 +440,14 @@ func TestModifyScheduleAndBookingInvalid(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg1 := "001"
@@ -444,12 +473,14 @@ func TestModifyScheduleAndBookingProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	testArg1 := "001"
@@ -470,12 +501,14 @@ func TestConvertScheduleToAppointmentScheduleProperlyCalled(t *testing.T) {
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := NewMockBScheduleUtil(t)
 	bConversionUtil := NewMockBConversionUtil(t)
+	bPointerCalculator := NewMockBPointerCalculator(t)
 
 	bTimeFactory := &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}
 
 	baseDate, _ := time.Parse("2006-01-02T15:04:05Z", "2020-02-09T00:00:00Z")
@@ -500,4 +533,66 @@ func TestConvertScheduleToAppointmentScheduleProperlyCalled(t *testing.T) {
 	output := bTimeFactory.ConvertScheduleToAppointmentSchedule(&schedule, emptyAvail)
 
 	assert.Equal(t, &returnArg, output)
+}
+
+func TestFindWeekDay(t *testing.T) {
+	timeInterval := 5
+
+	bTimeFactory, _ := NewBTimeFactory(timeInterval)
+
+	type test struct {
+		Date    string
+		WeekDay int
+		Name    string
+	}
+
+	tests := []test{
+		{
+			Date:    "2020-02-02T00:00:00Z",
+			WeekDay: 0,
+			Name:    "Sunday",
+		},
+		{
+			Date:    "2020-02-03T00:00:00Z",
+			WeekDay: 1,
+			Name:    "Monday",
+		},
+		{
+			Date:    "2020-02-04T00:00:00Z",
+			WeekDay: 2,
+			Name:    "Tuesday",
+		},
+		{
+			Date:    "2020-02-05T00:00:00Z",
+			WeekDay: 3,
+			Name:    "Wednesday",
+		},
+		{
+			Date:    "2020-02-06T00:00:00Z",
+			WeekDay: 4,
+			Name:    "Thursday",
+		},
+		{
+			Date:    "2020-02-07T00:00:00Z",
+			WeekDay: 5,
+			Name:    "Friday",
+		},
+		{
+			Date:    "2020-02-08T00:00:00Z",
+			WeekDay: 6,
+			Name:    "Saturday",
+		},
+	}
+
+	for i := 0; i < len(tests); i++ {
+		tc := tests[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			baseDate, _ := time.Parse("2006-01-02T15:04:05Z", tc.Date)
+			weekday := bTimeFactory.FindWeekDay(&baseDate)
+
+			if weekday != tc.WeekDay {
+				t.Fatalf("expected weekday int: %d, received: %d for weekday: %s", tc.WeekDay, weekday, tc.Name)
+			}
+		})
+	}
 }

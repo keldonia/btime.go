@@ -147,6 +147,48 @@ func (_c *MockBPointerCalculator_FindBPointerModiferForDayOfWeek_Call) RunAndRet
 	return _c
 }
 
+// FindWeekDay provides a mock function with given fields: date
+func (_m *MockBPointerCalculator) FindWeekDay(date *time.Time) int {
+	ret := _m.Called(date)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(*time.Time) int); ok {
+		r0 = rf(date)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
+// MockBPointerCalculator_FindWeekDay_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindWeekDay'
+type MockBPointerCalculator_FindWeekDay_Call struct {
+	*mock.Call
+}
+
+// FindWeekDay is a helper method to define mock.On call
+//   - date *time.Time
+func (_e *MockBPointerCalculator_Expecter) FindWeekDay(date interface{}) *MockBPointerCalculator_FindWeekDay_Call {
+	return &MockBPointerCalculator_FindWeekDay_Call{Call: _e.mock.On("FindWeekDay", date)}
+}
+
+func (_c *MockBPointerCalculator_FindWeekDay_Call) Run(run func(date *time.Time)) *MockBPointerCalculator_FindWeekDay_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*time.Time))
+	})
+	return _c
+}
+
+func (_c *MockBPointerCalculator_FindWeekDay_Call) Return(_a0 int) *MockBPointerCalculator_FindWeekDay_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockBPointerCalculator_FindWeekDay_Call) RunAndReturn(run func(*time.Time) int) *MockBPointerCalculator_FindWeekDay_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewMockBPointerCalculator interface {
 	mock.TestingT
 	Cleanup(func())

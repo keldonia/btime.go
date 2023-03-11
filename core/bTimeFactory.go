@@ -1,6 +1,8 @@
 package core
 
 import (
+	"time"
+
 	"github.com/keldonia/btime.go/models"
 )
 
@@ -16,13 +18,15 @@ type BTimeFactory interface {
 	DeleteAppointmentBString(timeSlotToDelete string, scheduleSlot string) (*string, error)
 	ModifyScheduleAndBooking(scheduleBStringToModify string, scheduleBStringToTest string, appt string) (*string, error)
 	ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule
+	FindWeekDay(date *time.Time) int
 }
 
 type BTimeFactoryImpl struct {
-	bTimeConfig     *BTimeConfig
-	bStringUtil     BStringUtil
-	bScheduleUtil   BScheduleUtil
-	bConversionUtil BConversionUtil
+	bTimeConfig        *BTimeConfig
+	bStringUtil        BStringUtil
+	bScheduleUtil      BScheduleUtil
+	bConversionUtil    BConversionUtil
+	bPointerCalculator BPointerCalculator
 }
 
 // Instantiates a new BTimeFactory, which manages and exposes various binary scheduling and string utils
@@ -44,12 +48,14 @@ func NewBTimeFactory(timeInterval int) (BTimeFactory, error) {
 	bStringUtil, _ := NewBStringUtil(bTimeConfig)
 	bScheduleUtil, _ := NewBScheduleUtil(bTimeConfig)
 	bConversionUtil, _ := NewBConversionUtil(bTimeConfig)
+	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
 
 	return &BTimeFactoryImpl{
-		bTimeConfig:     bTimeConfig,
-		bStringUtil:     bStringUtil,
-		bScheduleUtil:   bScheduleUtil,
-		bConversionUtil: bConversionUtil,
+		bTimeConfig:        bTimeConfig,
+		bStringUtil:        bStringUtil,
+		bScheduleUtil:      bScheduleUtil,
+		bConversionUtil:    bConversionUtil,
+		bPointerCalculator: bPointerCalculator,
 	}, nil
 }
 
@@ -177,4 +183,9 @@ func (btf *BTimeFactoryImpl) ModifyScheduleAndBooking(scheduleBStringToModify st
 // NB: This is a passthrough to the configured BConversionUtil
 func (btf *BTimeFactoryImpl) ConvertScheduleToAppointmentSchedule(schedule *models.Schedule, availability []string) *models.AppointmentSchedule {
 	return btf.bConversionUtil.ConvertScheduleToAppointmentSchedule(schedule, availability)
+}
+
+// Finds the numeric day of the week with 0 = Sunday
+func (btf *BTimeFactoryImpl) FindWeekDay(date *time.Time) int {
+	return btf.bPointerCalculator.FindWeekDay(date)
 }

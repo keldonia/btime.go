@@ -238,7 +238,7 @@ func (bschu *BScheduleUtilImpl) DeleteAppointmentBString(bStringToDelete string,
 	for i := 0; i < constants.HoursInDay; i++ {
 		currentInterval, err := bschu.DeleteAppointmentInterval(apptMask[i], splitBookings[i])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error occured on hour: %d, error: %s", i, err)
 		}
 
 		returnAppointments = append(returnAppointments, *currentInterval)

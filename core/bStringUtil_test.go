@@ -20,6 +20,17 @@ func generateApptFromHoursAndMins(startHour int, startMin int, endHour int, endM
 	}
 }
 
+func generateApptFromHoursAndMinsPointer(startHour int, startMin int, endHour int, endMin int, startDay int, endDay int) *models.Appointment {
+
+	start := generateMockDate(startHour, startMin, &startDay)
+	end := generateMockDate(endHour, endMin, &endDay)
+
+	return &models.Appointment{
+		StartTime: &start,
+		EndTime:   &end,
+	}
+}
+
 func TestBadBStringUtilSetup(t *testing.T) {
 	bStringUtil, err := NewBStringUtil(nil)
 
