@@ -77,6 +77,179 @@ func TestNewBSchedulerValidInput(t *testing.T) {
 	}
 }
 
+func TestUpdateScheduleWithAppointmentSchedule(t *testing.T) {
+	timeInterval := 5
+	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
+
+	bScheduler, _ := NewBScheduler(timeInterval)
+	bStringUtil, _ := NewBStringUtil(bTimeConfig)
+
+	baseDate, _ := time.Parse("2006-01-02T15:04:05Z", "2020-02-02T00:00:00Z")
+
+	type test struct {
+		Name             string
+		APSchedule       [][]models.Appointment
+		APBookings       [][]models.Appointment
+		APAvail          [][]models.Appointment
+		Schedule         []models.Appointment
+		Bookings         []models.Appointment
+		ExpectedSchedule []models.Appointment
+		Error            bool
+		ExpectedError    string
+	}
+
+	tests := []test{
+		{
+			APSchedule: [][]models.Appointment{
+				[]models.Appointment{generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 3, 3)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 4, 4)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 5, 5)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 6, 6)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 7, 7)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 8, 2)},
+			},
+			APBookings: [][]models.Appointment{
+				[]models.Appointment{generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 3, 3)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 4, 4)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 5, 5)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 6, 6)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 7, 7)},
+				[]models.Appointment{generateApptFromHoursAndMins(12, 0, 17, 0, 8, 2)},
+			},
+			APAvail:       [][]models.Appointment{},
+			Schedule:      []models.Appointment{},
+			Bookings:      []models.Appointment{},
+			Error:         true,
+			ExpectedError: "BString Error: Appointment can't end before it begins.  Appointment start: time.Date(2020, time.February, 8, 12, 0, 0, 0, time.UTC) Appointment end: time.Date(2020, time.February, 2, 17, 0, 0, 0, time.UTC)",
+			Name:          "should return false if a binaryString representation of the schedule is unable to be created",
+		},
+	}
+
+	for i := 0; i < len(tests); i++ {
+		tc := tests[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			apptSchedule := &models.AppointmentSchedule{
+				Schedule:     &tc.APSchedule,
+				Bookings:     &tc.APBookings,
+				Availability: &tc.APAvail,
+				WeekStart:    &baseDate,
+			}
+
+			scheduledAvail, _ := bStringUtil.GenerateBStringFromAppointments(&tc.Schedule)
+			bookings, _ := bStringUtil.GenerateBStringFromAppointments(&tc.Bookings)
+
+			schedule := generateSchedule(*scheduledAvail, *bookings, &baseDate)
+
+			updated, err := bScheduler.UpdateScheduleWithAppointmentSchedule(apptSchedule, schedule)
+
+			expected, _ := bStringUtil.GenerateBStringFromAppointments(&tc.ExpectedSchedule)
+
+			if !tc.Error && err != nil {
+				t.Fatalf("expected no error, received: %s", err.Error())
+			}
+			if tc.Error && err.Error() != tc.ExpectedError {
+				t.Fatalf("expected error with message: %s, received: %s", tc.ExpectedError, err.Error())
+			}
+			if !tc.Error {
+				for i := 0; i < constants.DaysInWeek; i++ {
+					expected := (*expected)[i]
+					computedAppts := (*updated.Schedule)[i]
+					computed, _ := bStringUtil.GenerateBStringFromAppointments(&computedAppts)
+
+					if len(expected) != len(*computed) {
+						t.Fatalf("bookings did not match expected on day: %d, expected: %s, received: %s", i, expected, computed)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestBSchedulerConvertScheduleToAppointmentSchedule(t *testing.T) {
+	timeInterval := 5
+	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
+
+	bScheduler, _ := NewBScheduler(timeInterval)
+	bStringUtil, _ := NewBStringUtil(bTimeConfig)
+
+	baseDate, _ := time.Parse("2006-01-02T15:04:05Z", "2020-02-02T00:00:00Z")
+
+	type test struct {
+		Avail         []models.Appointment
+		Bookings      []models.Appointment
+		Error         bool
+		Expected      []models.Appointment
+		ExpectedError string
+		Name          string
+	}
+
+	tests := []test{
+		{
+			Avail: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(12, 0, 17, 0, 3, 3),
+				generateApptFromHoursAndMins(12, 0, 17, 0, 4, 4),
+				generateApptFromHoursAndMins(12, 0, 17, 0, 5, 5),
+				generateApptFromHoursAndMins(12, 0, 17, 0, 6, 6),
+				generateApptFromHoursAndMins(12, 0, 17, 0, 7, 7),
+				generateApptFromHoursAndMins(12, 0, 17, 0, 8, 8),
+			},
+			Bookings: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 3, 3),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 4, 4),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 5, 5),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 6, 6),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 7, 7),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 8, 8),
+			},
+			Error:         true,
+			Expected:      []models.Appointment{},
+			ExpectedError: "BScheduler Error: Was unable to convert schedule to appointment schedule, as the bookings do not fit in the schedule",
+			Name:          "should throw an error if the bookings do not fit in the schedule",
+		},
+		{
+			Avail:         []models.Appointment{},
+			Bookings:      []models.Appointment{},
+			Error:         false,
+			Expected:      []models.Appointment{},
+			ExpectedError: "BScheduler Error: Was unable to convert schedule to appointment schedule, as the bookings do not fit in the schedule",
+			Name:          "should throw an error if the bookings do not fit in the schedule",
+		},
+	}
+
+	for i := 0; i < len(tests); i++ {
+		tc := tests[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			scheduledAvail, _ := bStringUtil.GenerateBStringFromAppointments(&tc.Avail)
+			bookings, _ := bStringUtil.GenerateBStringFromAppointments(&tc.Bookings)
+
+			schedule := generateSchedule(*scheduledAvail, *bookings, &baseDate)
+
+			converted, err := bScheduler.ConvertScheduleToAppointmentSchedule(schedule)
+
+			if !tc.Error && err != nil {
+				t.Fatalf("expected no error, received: %s", err.Error())
+			}
+			if tc.Error && err.Error() != tc.ExpectedError {
+				t.Fatalf("expected error with message: %s, received: %s", tc.ExpectedError, err.Error())
+			}
+			if !tc.Error {
+				for i := 0; i < constants.DaysInWeek; i++ {
+					expected := (tc.Expected)
+					computed := (*converted.Schedule)[i]
+
+					if len(expected) != len(computed) {
+						t.Fatalf("bookings did not match expected on day: %d, expected: %s, received: %s", i, expected, computed)
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestGetCurrentAvailability(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
