@@ -2,7 +2,10 @@ module github.com/keldonia/btime.go
 
 go 1.20
 
-require github.com/stretchr/testify v1.8.2
+require (
+	github.com/stretchr/testify v1.8.2
+	golang.org/x/exp v0.0.0-20230310171629-522b1b587ee0
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
