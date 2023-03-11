@@ -77,6 +77,234 @@ func TestNewBSchedulerValidInput(t *testing.T) {
 	}
 }
 
+func TestGetCurrentAvailability(t *testing.T) {
+	timeInterval := 5
+	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
+
+	bScheduler, _ := NewBScheduler(timeInterval)
+	bStringUtil, _ := NewBStringUtil(bTimeConfig)
+
+	baseDate, _ := time.Parse("2006-01-02T15:04:05Z", "2020-02-02T00:00:00Z")
+
+	type test struct {
+		Avail           []models.Appointment
+		Bookings        []models.Appointment
+		Error           bool
+		Expected        []models.Appointment
+		ExpectedError   string
+		Name            string
+		InvalidAvail    bool
+		InvalidBookings bool
+	}
+
+	tests := []test{
+		{
+			Avail:           []models.Appointment{},
+			Bookings:        []models.Appointment{},
+			Error:           false,
+			Expected:        []models.Appointment{},
+			ExpectedError:   "",
+			Name:            "should return the no remaining availability, if there is no availabilty or bookings",
+			InvalidAvail:    false,
+			InvalidBookings: false,
+		},
+		{
+			Avail: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 3, 3),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 4, 4),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 5, 5),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 6, 6),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 7, 7),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 8, 8),
+			},
+			Bookings: []models.Appointment{},
+			Error:    false,
+			Expected: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 3, 3),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 4, 4),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 5, 5),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 6, 6),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 7, 7),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 8, 8),
+			},
+			ExpectedError:   "",
+			Name:            "should return the original availability if there are no bookings",
+			InvalidAvail:    false,
+			InvalidBookings: false,
+		},
+		{
+			Avail: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 3, 3),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 4, 4),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 5, 5),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 6, 6),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 7, 7),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 8, 8),
+			},
+			Bookings: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 3, 3),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 4, 4),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 5, 5),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 6, 6),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 7, 7),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 8, 8),
+			},
+			Error:           false,
+			Expected:        []models.Appointment{},
+			ExpectedError:   "",
+			Name:            "should return no remaining availity, if the availabiltiy and bookings exactly match",
+			InvalidAvail:    false,
+			InvalidBookings: false,
+		},
+		{
+			Avail: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(9, 0, 17, 0, 3, 3),
+				generateApptFromHoursAndMins(9, 0, 17, 0, 4, 4),
+				generateApptFromHoursAndMins(9, 0, 17, 0, 5, 5),
+				generateApptFromHoursAndMins(9, 0, 17, 0, 6, 6),
+				generateApptFromHoursAndMins(9, 0, 17, 0, 7, 7),
+				generateApptFromHoursAndMins(9, 0, 17, 0, 8, 8),
+			},
+			Bookings: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 17, 0, 2, 2),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 3, 3),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 4, 4),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 5, 5),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 6, 6),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 7, 7),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 8, 8),
+			},
+			Error: false,
+			Expected: []models.Appointment{
+				generateApptFromHoursAndMins(17, 5, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(9, 0, 10, 55, 3, 3),
+				generateApptFromHoursAndMins(9, 0, 10, 55, 4, 4),
+				generateApptFromHoursAndMins(9, 0, 10, 55, 5, 5),
+				generateApptFromHoursAndMins(9, 0, 10, 55, 6, 6),
+				generateApptFromHoursAndMins(9, 0, 10, 55, 7, 7),
+				generateApptFromHoursAndMins(9, 0, 10, 55, 8, 8),
+			},
+			ExpectedError:   "",
+			Name:            "should return the expected availabiltiy if there is availability and bookings",
+			InvalidAvail:    false,
+			InvalidBookings: false,
+		},
+		{
+			Avail: []models.Appointment{},
+			Bookings: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 17, 0, 2, 2),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 3, 3),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 4, 4),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 5, 5),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 6, 6),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 7, 7),
+				generateApptFromHoursAndMins(11, 0, 17, 0, 8, 8),
+			},
+			Error:           true,
+			Expected:        []models.Appointment{},
+			ExpectedError:   "BScheduleUtil Error: Time intervals overlap.",
+			Name:            "should return an error if an invalid schedule is passed",
+			InvalidAvail:    false,
+			InvalidBookings: false,
+		},
+		{
+			Avail: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 3, 3),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 4, 4),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 5, 5),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 6, 6),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 7, 7),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 8, 8),
+			},
+			Bookings: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 3, 3),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 4, 4),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 5, 5),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 6, 6),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 7, 7),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 8, 8),
+			},
+			Error:           true,
+			Expected:        []models.Appointment{},
+			ExpectedError:   "strconv.ParseInt: parsing \"00000w\": invalid syntax",
+			Name:            "should handle invalid availability",
+			InvalidAvail:    true,
+			InvalidBookings: false,
+		},
+		{
+			Avail: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 3, 3),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 4, 4),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 5, 5),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 6, 6),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 7, 7),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 8, 8),
+			},
+			Bookings: []models.Appointment{
+				generateApptFromHoursAndMins(8, 0, 18, 0, 2, 2),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 3, 3),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 4, 4),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 5, 5),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 6, 6),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 7, 7),
+				generateApptFromHoursAndMins(8, 0, 18, 0, 8, 8),
+			},
+			Error:           true,
+			Expected:        []models.Appointment{},
+			ExpectedError:   "strconv.ParseInt: parsing \"00000w\": invalid syntax",
+			Name:            "should handle invalid availability",
+			InvalidAvail:    false,
+			InvalidBookings: true,
+		},
+	}
+
+	for i := 0; i < len(tests); i++ {
+		tc := tests[i]
+		t.Run(tc.Name, func(t *testing.T) {
+			scheduledAvail, _ := bStringUtil.GenerateBStringFromAppointments(&tc.Avail)
+			if tc.InvalidAvail {
+				invalidBookings := (*scheduledAvail)[0][0:5] + "w"
+				(*scheduledAvail)[0] = invalidBookings
+			}
+			bookings, _ := bStringUtil.GenerateBStringFromAppointments(&tc.Bookings)
+			if tc.InvalidBookings {
+				invalidBookings := (*bookings)[0][0:5] + "w"
+				(*bookings)[0] = invalidBookings
+			}
+
+			schedule := generateSchedule(*scheduledAvail, *bookings, &baseDate)
+			expectedAvail, _ := bStringUtil.GenerateBStringFromAppointments(&tc.Expected)
+
+			computedAvail, err := bScheduler.GetCurrentAvailability(schedule)
+
+			if !tc.Error && err != nil {
+				t.Fatalf("expected no error, received: %s", err.Error())
+			}
+			if tc.Error && err.Error() != tc.ExpectedError {
+				t.Fatalf("expected error with message: %s, received: %s", tc.ExpectedError, err.Error())
+			}
+			if !tc.Error {
+				for i := 0; i < constants.DaysInWeek; i++ {
+					expected := (*expectedAvail)[i]
+					computed := (*computedAvail)[i]
+
+					if strings.Compare(expected, computed) != 0 {
+						t.Fatalf("bookings did not match expected on day: %d, expected: %s, received: %s", i, expected, computed)
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestUpdateSchedule(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
