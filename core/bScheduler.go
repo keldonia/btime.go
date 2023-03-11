@@ -252,11 +252,11 @@ func (bs *BSchedulerImpl) ComposeAppointments(appointment *models.Appointment) *
 
 // Takes an appointment and tests if the appointment update is valid, if not it throws an error, if it is the schedule is updated
 func (bs *BSchedulerImpl) HandleBookingUpdate(appointment *models.Appointment, schedule *models.Schedule, firstAppt *models.Appointment) (*models.Schedule, error) {
-	var startDay int = int(appointment.StartTime.UTC().Weekday())
-	endDay := int(appointment.EndTime.UTC().Weekday())
+	var startDay int = bs.bTimeFactory.FindWeekDay(appointment.StartTime)
+	endDay := bs.bTimeFactory.FindWeekDay(appointment.EndTime)
 
 	if firstAppt != nil {
-		startDay = int(firstAppt.StartTime.UTC().Weekday())
+		startDay = bs.bTimeFactory.FindWeekDay(firstAppt.StartTime)
 		firstAppointmentBString, err := bs.bTimeFactory.GenerateBString(firstAppt)
 
 		if err != nil {
