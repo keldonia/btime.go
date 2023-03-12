@@ -48,7 +48,7 @@ func NewBScheduler(timeInterval int) (BScheduler, error) {
 }
 
 // Tests a proposed appointment schedule update and updates the schedule,
-// if theupdate is valid or throws an error if the update is not valid
+// if the update is valid or throws an error if the update is not valid
 func (bs *BSchedulerImpl) UpdateScheduleWithAppointmentSchedule(proposedAppointmentSchedule *models.AppointmentSchedule, schedule *models.Schedule) (*models.AppointmentSchedule, error) {
 	scheduleAppointments := []models.Appointment{}
 
@@ -75,11 +75,11 @@ func (bs *BSchedulerImpl) UpdateScheduleWithAppointmentSchedule(proposedAppointm
 		return nil, err
 	}
 
-	availability, err := bs.GetCurrentAvailability(schedule)
-
-	if err != nil {
-		return nil, err
-	}
+	// NB: The error here return can only occur if the input is malformed,
+	// which is previously checked or if there is an overbooking which is
+	// already checked for in UpdateSchedule, this will just generate the
+	// availabilty for the appointment schedule
+	availability, _ := bs.GetCurrentAvailability(schedule)
 
 	appointmentSchedule := bs.bTimeFactory.ConvertScheduleToAppointmentSchedule(updatedSchedule, *availability)
 
