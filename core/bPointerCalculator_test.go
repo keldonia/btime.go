@@ -99,6 +99,40 @@ func TestFindBPointerModiferForDayOfWeek(t *testing.T) {
 	}
 }
 
+func TestFindWeekday(t *testing.T) {
+	timeInterval := 5
+	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
+	bPointerCalculator, _ := NewBPointerCalculator(bTimeConfig)
+
+	type test struct {
+		Date     string
+		Expected int
+	}
+
+	tests := []test{
+		{Date: "2020-02-09T00:00:00Z", Expected: 0},
+		{Date: "2020-02-10T00:00:00Z", Expected: 1},
+		{Date: "2020-02-11T00:00:00Z", Expected: 2},
+		{Date: "2020-02-12T00:00:00Z", Expected: 3},
+		{Date: "2020-02-13T00:00:00Z", Expected: 4},
+		{Date: "2020-02-14T00:00:00Z", Expected: 5},
+		{Date: "2020-02-15T00:00:00Z", Expected: 6},
+	}
+
+	for i := 0; i < len(tests); i++ {
+		tc := tests[i]
+		dateTime, _ := time.Parse("2006-01-02T15:04:05Z", tc.Date)
+		name := fmt.Sprintf("should return %d when passed %s, which has is %s", tc.Expected, tc.Date, dateTime.Weekday())
+		t.Run(name, func(t *testing.T) {
+			bPointer := bPointerCalculator.FindWeekDay(&dateTime)
+
+			if bPointer != tc.Expected {
+				t.Fatalf("for date: %s expected: %d, recieved: %d", dateTime.GoString(), tc.Expected, bPointer)
+			}
+		})
+	}
+}
+
 func TestFindBPointer(t *testing.T) {
 	type test struct {
 		Hour     int

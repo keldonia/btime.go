@@ -45,6 +45,29 @@ func TestMergeScheduleBStringsWithTestInvalidAppt(t *testing.T) {
 	}
 }
 
+func TestMergeScheduleBStringsWithTestInvalidAppt2(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+	two := 2
+	appt1 := generateApptFromHoursAndMins(2, 0, 1, 24, two, two)
+	appt2 := bTimeConfig.EmptyDay
+	errorStr := fmt.Sprintf("BSchedule Error: Invalid timeslot passed to merge schedule BString StartTime: %s EndTime: %s", appt1.StartTime.UTC().GoString(), appt1.EndTime.UTC().GoString())
+
+	merged, err := bScheduleUtil.MergeScheduleBStringsWithTest(&appt1, appt2)
+
+	if merged != nil {
+		t.Fatalf("expected merged to be nil, received: %s", *merged)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received %s", err.Error())
+	}
+}
+
 func TestLoopMergeScheduleBStringWithTest(t *testing.T) {
 	timeInterval := 5
 	bTimeConfig, _ := BuildConfigFromTimeInterval(timeInterval)
@@ -374,7 +397,7 @@ func TestModifyScheduleAndBookingInterval(t *testing.T) {
 	}
 }
 
-func TestDeleteAppointmentDeleteAppointment(t *testing.T) {
+func TestDeleteAppointmentInvalidDelete(t *testing.T) {
 	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
 	bStringUtil := NewMockBStringUtil(t)
 	bScheduleUtil := &BScheduleUtilImpl{
@@ -387,6 +410,30 @@ func TestDeleteAppointmentDeleteAppointment(t *testing.T) {
 	scheduleSlot := bTimeConfig.EmptyHour
 
 	bStringUtil.On("GenerateBString", &timeSlotToDelete).Return(nil, fmt.Errorf(errorStr))
+
+	updated, err := bScheduleUtil.DeleteAppointment(&timeSlotToDelete, scheduleSlot)
+
+	if updated != nil {
+		t.Fatalf("expected updated to be nil, received: %s", *updated)
+	}
+
+	if err.Error() != errorStr {
+		t.Fatalf("expected error, received: %s", err.Error())
+	}
+}
+
+func TestDeleteAppointmentInvalidDelete2(t *testing.T) {
+	bTimeConfig, _ := BuildConfigFromTimeInterval(5)
+	bStringUtil := NewMockBStringUtil(t)
+	bScheduleUtil := &BScheduleUtilImpl{
+		bTimeConfig: bTimeConfig,
+		bStringUtil: bStringUtil,
+	}
+
+	timeSlotToDelete := generateApptFromHoursAndMins(2, 0, 1, 24, 2, 2)
+	errorStr := fmt.Sprintf("BSchedule Error: Invalid appointment passed to delete appointment StartTime: %s EndTime: %s", timeSlotToDelete.StartTime.UTC().GoString(), timeSlotToDelete.EndTime.UTC().GoString())
+
+	scheduleSlot := bTimeConfig.EmptyHour
 
 	updated, err := bScheduleUtil.DeleteAppointment(&timeSlotToDelete, scheduleSlot)
 

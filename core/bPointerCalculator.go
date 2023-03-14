@@ -50,11 +50,6 @@ func (bpc *BPointerCalculatorImpl) FindBPointerModiferForDayOfWeek(date *time.Ti
 func (bpc *BPointerCalculatorImpl) FindWeekDay(date *time.Time) int {
 	weekday := date.UTC().Weekday()
 
-	// Shift pointer to start week on Sunday
-	if weekday == time.Sunday {
-		weekday = 0
-	}
-
 	return int(weekday)
 }
 

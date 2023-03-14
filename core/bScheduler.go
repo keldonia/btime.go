@@ -113,7 +113,7 @@ func (bs *BSchedulerImpl) GetCurrentAvailability(schedule *models.Schedule) (*[]
 		splitAvailability := bs.bTimeFactory.TimeStringSplit(availability)
 		calculatedAvailability := []string{}
 
-		for j := 0; j < len(splitBookings); j++ {
+		for j := 0; j <= len(splitBookings); j++ {
 			availabilityInterval, err := bs.bTimeFactory.ParseBString(splitAvailability[j])
 
 			if err != nil {
@@ -311,8 +311,8 @@ func (bs *BSchedulerImpl) HandleBookingUpdateBString(appointmentsBStrings []stri
 		if err != nil {
 			return nil, err
 		}
+		_, _, _ = bookings, bookings, tempBookings
 
-		bookings = append(bookings, *tempBookings)
 	}
 
 	*schedule.Bookings = bookings
