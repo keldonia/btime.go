@@ -3,6 +3,7 @@ package utils
 import (
 	"time"
 
+	"github.com/keldonia/btime.go/constants"
 	"github.com/keldonia/btime.go/models"
 )
 
@@ -58,7 +59,7 @@ func GetDatesFromStartDate(date *time.Time) []time.Time {
 	// Additionally, Date::UTC automatically rolls over to the next
 	// largest increment, if a value is greater than the max
 	// day 0 = Sunday
-	for i := 1; i < 7; i++ {
+	for i := 1; i < constants.DaysInWeek; i++ {
 		modifiedDate := date.AddDate(0, 0, i)
 
 		returnDates = append(returnDates, modifiedDate)

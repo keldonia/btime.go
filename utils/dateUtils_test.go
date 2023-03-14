@@ -151,6 +151,10 @@ func TestGetDatesFromStartDate(t *testing.T) {
 
 			computedWeek := GetDatesFromStartDate(&startDate)
 
+			if len(computedWeek) != 7 {
+				t.Fatalf("expected a week of 7 days, recieved %d days", len(computedWeek))
+			}
+
 			for i := 0; i < len(expectedWeek); i++ {
 				expected := expectedWeek[i]
 				computed := computedWeek[i]
