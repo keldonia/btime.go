@@ -7,8 +7,6 @@ and 100% test and mutation test coverage, designed to help manage schedules usin
 bit manipulation.  It is particularly suited to working with dense schedules with 
 discreet time intervals, e.g. 5 minutes.
 
-## Work in Progress
-
 ## Getting Started
 
 ### From Source
